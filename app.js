@@ -81,7 +81,7 @@
       btnConfirmOrder: "Confirmar Pedido para Recoger",
       orderSuccessTitle: "¡Pedido Recibido con Éxito!",
       orderNumberLabel: "Número de Pedido:",
-      orderPrepMessage: "Estamos preparando su orden caliente en nuestra cocina en 8672 Lindley Ave, Northridge.",
+      orderPrepMessage: "Su orden fue enviada por SMS al restaurante y sincronizada con la cocina / Clover POS en 8672 Lindley Ave, Northridge.",
       btnCallStoreConfirm: "Llamar al Restaurante",
       btnDirections: "Ver Ruta en Google Maps",
       btnClose: "Cerrar"
@@ -150,7 +150,7 @@
       btnConfirmOrder: "Confirm Pickup Order",
       orderSuccessTitle: "Order Placed Successfully!",
       orderNumberLabel: "Order Number:",
-      orderPrepMessage: "We are preparing your fresh order right now at 8672 Lindley Ave, Northridge.",
+      orderPrepMessage: "Your order was sent via SMS to the restaurant and synced with the Clover kitchen system at 8672 Lindley Ave, Northridge.",
       btnCallStoreConfirm: "Call Restaurant",
       btnDirections: "Get Directions on Google Maps",
       btnClose: "Close"
