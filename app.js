@@ -1,653 +1,865 @@
-// ==========================================================================
-// Restaurante Salvadoreño Ebenezer — Direct Online Ordering System Logic
-// ==========================================================================
+/**
+ * Restaurante Salvadoreño Ebenezer — Application Logic (v2)
+ * Clean, fast, accessible state-driven ordering experience.
+ */
 
-(function() {
+(() => {
   'use strict';
 
-  // --- STATE ---
-  let currentLang = localStorage.getItem('ebenezer_lang') || 'es';
-  let cart = JSON.parse(localStorage.getItem('ebenezer_cart') || '[]');
-  let activeCategory = 'all';
-  let activePupusaItem = null;
-
-  // Constants
-  const TAX_RATE = 0.095; // 9.5% Los Angeles County sales tax
-  const RESTAURANT_PHONE = '17472453571'; // (747) 245-3571
-
-  // Text Dictionaries
+  // --- 1. Internationalization Dictionary (Spec §6) ---
   const I18N = {
     es: {
-      topBannerBadge: "Sitio Oficial",
-      topBannerText: "¡Ordene Directo y Ahorre! Precios originales de tienda sin tarifas de intermediarios ($0 Comisiones a Terceros).",
-      btnLang: "English",
-      btnCall: "Llamar",
-      cartBtnText: "Mi Pedido",
-      heroTag: "Auténtico Sabor Salvadoreño • Northridge, CA",
-      heroTitle: "Pupusas Artesanales y Tradición Salvadoreña",
-      heroDesc: "Hechas a mano al momento con masa fresca de maíz o arroz. Precios justos de tienda sin sobreprecios ni comisiones abusivas.",
-      heroMetaLocation: "8672 Lindley Ave, Northridge, CA",
-      heroMetaHours: "Abierto Hoy: 6:00 AM – 8:00 PM",
-      heroMetaRating: "4.3★ en Google (350+ Reseñas)",
-      heroBtnOrder: "Pedir para Recoger",
-      heroBtnCall: "Llamar al Restaurante",
-      value1Title: "Precios Reales de Tienda",
-      value1Desc: "Pupusas a $3.75 (Ahorre $2.40 por pupusa)",
-      value2Title: "0% Comisiones a Terceros",
-      value2Desc: "100% de apoyo directo a negocio familiar",
-      value3Title: "Recogida Rápida (Pickup)",
-      value3Desc: "Listo en 20-25 mins • Calientito en mostrador",
-      catAll: "Todos los Platillos",
-      searchPlaceholder: "Buscar pupusas, caldos, tamales...",
-      addToCart: "+ Ordenar",
-      customizePupusa: "Personalizar Pupusa",
-      cartTitle: "Su Pedido para Recoger",
-      cartEmptyTitle: "Su carrito está vacío",
-      cartEmptyDesc: "Agregue sus pupusas y platillos favoritos para comenzar su pedido.",
-      savingsCallout: "¡Usted está ahorrando ",
-      savingsCalloutEnd: " ordenando directo hoy!",
-      summarySubtotal: "Subtotal",
-      summaryTax: "Impuestos Locales (9.5%)",
-      summaryFees: "Tarifa de Servicio a Terceros",
-      summaryFeesValue: "$0.00 (Gratis)",
-      summaryTotal: "Total a Pagar",
-      btnProceedCheckout: "Continuar con el Pedido",
-      btnWhatsAppOrder: "Enviar Pedido por WhatsApp",
-      modalPupusaTitle: "Personalice su Pupusa",
-      doughTitle: "Seleccione su Masa:",
-      doughCorn: "Maíz Tradicional",
-      doughRice: "Harina de Arroz (+ $0.50)",
-      extrasTitle: "Acompañamientos y Extras:",
-      extraCurtido: "Curtido Artesanal Extra",
-      extraSalsaRoja: "Salsa de Tomate Casera Extra",
-      extraSalsaPicante: "Salsa Picante Roja",
-      cookingStyleTitle: "Punto de Cocción:",
-      cookingNormal: "Normal / Suave",
-      cookingWellDone: "Bien Doradita / Tostadita",
-      notesPlaceholder: "Instrucciones especiales para la cocina...",
-      btnAddModal: "Agregar al Carrito",
-      checkoutModalTitle: "Detalles para Recoger (Pickup)",
-      nameLabel: "Nombre y Apellido:",
-      namePlaceholder: "Ej. Carlos Martínez",
-      phoneLabel: "Teléfono Móvil (para aviso por SMS/WhatsApp):",
-      phonePlaceholder: "Ej. (818) 555-0192",
-      pickupTimeLabel: "Hora de Recogida:",
-      pickupAsap: "Lo antes posible (20-25 minutos)",
-      pickup30: "En 35-40 minutos",
-      pickup60: "En 60 minutos",
-      paymentMethodLabel: "Método de Pago:",
-      payAtStore: "Pagar al Recoger (Efectivo o Tarjeta en Tienda)",
-      payCardOnline: "Tarjeta de Crédito / Débito / Apple Pay (Stripe)",
-      btnConfirmOrder: "Confirmar Pedido para Recoger",
-      orderSuccessTitle: "¡Pedido Recibido con Éxito!",
-      orderNumberLabel: "Número de Pedido:",
-      orderPrepMessage: "Su orden fue enviada por SMS al restaurante y sincronizada con la cocina / Clover POS en 8672 Lindley Ave, Northridge.",
-      btnCallStoreConfirm: "Llamar al Restaurante",
-      btnDirections: "Ver Ruta en Google Maps",
-      btnClose: "Cerrar"
+      tagline: "Pupusas hechas a mano",
+      openUntil: "Abierto · cierra {t}",
+      closedUntil: "Cerrado · abre {t}",
+      directions: "Cómo llegar",
+      pupusasSub: "Hechas a mano · incluyen curtido y salsa",
+      dough: "Masa",
+      corn: "Maíz",
+      rice: "Arroz",
+      riceExtra: "+$0.50",
+      viewOrder: "Ver pedido",
+      yourOrder: "Tu pedido",
+      emptyCart: "Agrega pupusas o platillos del menú",
+      subtotal: "Subtotal",
+      tax: "Impuesto (9.5%)",
+      total: "Total",
+      continue: "Continuar",
+      pickupDetails: "Datos para recoger",
+      name: "Nombre",
+      namePh: "Tu nombre y apellido",
+      phone: "Teléfono",
+      phonePh: "(818) 000-0000",
+      pickupTime: "Hora de recogida",
+      asap: "Lo antes posible (~20 min)",
+      plus30: "En 30 min",
+      plus60: "En 60 min",
+      note: "Nota para la cocina (opcional)",
+      notePh: "Ej. bien doraditas, salsa picante aparte",
+      payAtPickup: "Pagas al recoger · efectivo o tarjeta",
+      send: "Enviar pedido",
+      back: "Volver",
+      sent: "¡Pedido enviado!",
+      orderNo: "Pedido",
+      readyAt: "Listo para recoger",
+      alsoWhatsApp: "También enviar por WhatsApp",
+      call: "Llamar",
+      done: "Listo",
+      hours: "Horario",
+      location: "Ubicación",
+      undo: "Deshacer",
+      itemRemoved: "Artículo eliminado",
+      enterNamePhone: "Por favor ingresa tu nombre y teléfono.",
+      days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
     },
     en: {
-      topBannerBadge: "Official Site",
-      topBannerText: "Order Direct & Save! Real in-store prices with zero middleman markups ($0 Third-Party Fees).",
-      btnLang: "Español",
-      btnCall: "Call Us",
-      cartBtnText: "My Order",
-      heroTag: "Authentic Salvadoran Cuisine • Northridge, CA",
-      heroTitle: "Handcrafted Pupusas & Salvadoran Tradition",
-      heroDesc: "Made fresh to order with handmade corn or rice flour dough. Fair in-store prices with zero parasitic markups.",
-      heroMetaLocation: "8672 Lindley Ave, Northridge, CA",
-      heroMetaHours: "Open Today: 6:00 AM – 8:00 PM",
-      heroMetaRating: "4.3★ on Google (350+ Reviews)",
-      heroBtnOrder: "Order for Pickup",
-      heroBtnCall: "Call Restaurant",
-      value1Title: "Real In-Store Prices",
-      value1Desc: "Pupusas from $3.75 (Save $2.40 per pupusa)",
-      value2Title: "0% Third-Party Fees",
-      value2Desc: "100% direct support to local family kitchen",
-      value3Title: "Quick Curbside / Pickup",
-      value3Desc: "Ready in 20-25 mins • Steaming hot at counter",
-      catAll: "All Dishes",
-      searchPlaceholder: "Search pupusas, soups, tamales...",
-      addToCart: "+ Order",
-      customizePupusa: "Customize Pupusa",
-      cartTitle: "Your Pickup Order",
-      cartEmptyTitle: "Your cart is empty",
-      cartEmptyDesc: "Add your favorite pupusas and Salvadoran specialties to start.",
-      savingsCallout: "You are saving ",
-      savingsCalloutEnd: " ordering direct today!",
-      summarySubtotal: "Subtotal",
-      summaryTax: "Local Sales Tax (9.5%)",
-      summaryFees: "Third-Party Platform Fee",
-      summaryFeesValue: "$0.00 (Free)",
-      summaryTotal: "Total Due",
-      btnProceedCheckout: "Proceed to Pickup Details",
-      btnWhatsAppOrder: "Send Order via WhatsApp",
-      modalPupusaTitle: "Customize Your Pupusa",
-      doughTitle: "Select Dough:",
-      doughCorn: "Traditional Corn Masa",
-      doughRice: "Rice Flour Masa (+ $0.50)",
-      extrasTitle: "Sides & Extras:",
-      extraCurtido: "Extra Artisanal Curtido Slaw",
-      extraSalsaRoja: "Extra Homestyle Tomato Sauce",
-      extraSalsaPicante: "Spicy Red Salsa",
-      cookingStyleTitle: "Griddle Style:",
-      cookingNormal: "Classic / Tender",
-      cookingWellDone: "Well Done / Crispy Brown",
-      notesPlaceholder: "Special instructions for the kitchen...",
-      btnAddModal: "Add to Order",
-      checkoutModalTitle: "Pickup & Customer Details",
-      nameLabel: "Full Name:",
-      namePlaceholder: "e.g. Carlos Martinez",
-      phoneLabel: "Mobile Phone (for SMS/WhatsApp update):",
-      phonePlaceholder: "e.g. (818) 555-0192",
-      pickupTimeLabel: "Pickup Time:",
-      pickupAsap: "As soon as possible (20-25 minutes)",
-      pickup30: "In 35-40 minutes",
-      pickup60: "In 60 minutes",
-      paymentMethodLabel: "Payment Method:",
-      payAtStore: "Pay at Pickup (Cash or Card in Store)",
-      payCardOnline: "Credit / Debit Card / Apple Pay (Stripe)",
-      btnConfirmOrder: "Confirm Pickup Order",
-      orderSuccessTitle: "Order Placed Successfully!",
-      orderNumberLabel: "Order Number:",
-      orderPrepMessage: "Your order was sent via SMS to the restaurant and synced with the Clover kitchen system at 8672 Lindley Ave, Northridge.",
-      btnCallStoreConfirm: "Call Restaurant",
-      btnDirections: "Get Directions on Google Maps",
-      btnClose: "Close"
+      tagline: "Handmade pupusas",
+      openUntil: "Open · closes {t}",
+      closedUntil: "Closed · opens {t}",
+      directions: "Directions",
+      pupusasSub: "Handmade · served with curtido & salsa",
+      dough: "Dough",
+      corn: "Corn",
+      rice: "Rice",
+      riceExtra: "+$0.50",
+      viewOrder: "View order",
+      yourOrder: "Your order",
+      emptyCart: "Add pupusas or dishes from the menu",
+      subtotal: "Subtotal",
+      tax: "Tax (9.5%)",
+      total: "Total",
+      continue: "Continue",
+      pickupDetails: "Pickup details",
+      name: "Name",
+      namePh: "Your full name",
+      phone: "Phone",
+      phonePh: "(818) 000-0000",
+      pickupTime: "Pickup time",
+      asap: "ASAP (~20 min)",
+      plus30: "In 30 min",
+      plus60: "In 60 min",
+      note: "Note for the kitchen (optional)",
+      notePh: "e.g. extra crispy, hot salsa on the side",
+      payAtPickup: "Pay at pickup · cash or card",
+      send: "Place order",
+      back: "Back",
+      sent: "Order placed!",
+      orderNo: "Order",
+      readyAt: "Ready for pickup",
+      alsoWhatsApp: "Also send via WhatsApp",
+      call: "Call",
+      done: "Done",
+      hours: "Hours",
+      location: "Location",
+      undo: "Undo",
+      itemRemoved: "Item removed",
+      enterNamePhone: "Please enter your name and phone number.",
+      days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     }
   };
 
-  function t(key) {
-    return I18N[currentLang][key] || key;
-  }
-
-  // --- INITIALIZATION ---
-  document.addEventListener('DOMContentLoaded', () => {
-    applyLanguage();
-    renderCategories();
-    renderMenu();
-    updateCartUI();
-    setupEventListeners();
-  });
-
-  // --- LANGUAGE SWITCHER ---
-  function applyLanguage() {
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (I18N[currentLang][key]) {
-        el.textContent = I18N[currentLang][key];
-      }
-    });
-    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-      const key = el.getAttribute('data-i18n-placeholder');
-      if (I18N[currentLang][key]) {
-        el.setAttribute('placeholder', I18N[currentLang][key]);
-      }
-    });
-
-    const langBtn = document.getElementById('langToggleBtn');
-    if (langBtn) {
-      langBtn.innerHTML = `🌐 ${t('btnLang')}`;
-    }
-  }
-
-  window.toggleLanguage = function() {
-    currentLang = currentLang === 'es' ? 'en' : 'es';
-    localStorage.setItem('ebenezer_lang', currentLang);
-    applyLanguage();
-    renderCategories();
-    renderMenu();
-    updateCartUI();
+  // --- 2. Application State ---
+  const state = {
+    lang: localStorage.getItem('ebenezer_lang') || 'es',
+    dough: 'corn', // 'corn' | 'rice'
+    cart: loadCart(), // [{ key, id, dough, qty }]
+    step: 1, // 1: Cart, 2: Checkout, 3: Confirmation
+    lastOrder: null,
+    lastRemovedItem: null,
+    undoTimer: null,
+    pickupTimeChoice: 'asap',
+    formData: { name: '', phone: '', note: '' }
   };
 
-  // --- RENDER CATEGORIES ---
-  function renderCategories() {
-    const nav = document.getElementById('categoriesNav');
-    if (!nav || !window.EBENEZER_CATALOG) return;
-
-    let html = `
-      <button class="cat-pill ${activeCategory === 'all' ? 'active' : ''}" onclick="filterCategory('all')">
-        🍽️ ${t('catAll')}
-      </button>
-    `;
-
-    window.EBENEZER_CATALOG.forEach(cat => {
-      const name = currentLang === 'es' ? cat.name_es : cat.name_en;
-      const isActive = activeCategory === cat.id ? 'active' : '';
-      html += `
-        <button class="cat-pill ${isActive}" onclick="filterCategory('${cat.id}')">
-          ${cat.icon} ${name}
-        </button>
-      `;
-    });
-
-    nav.innerHTML = html;
+  function loadCart() {
+    try {
+      const saved = localStorage.getItem('ebenezer_cart_v2');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   }
 
-  window.filterCategory = function(catId) {
-    activeCategory = catId;
-    renderCategories();
-    renderMenu();
-
-    if (catId !== 'all') {
-      const target = document.getElementById(`cat-${catId}`);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
-  // --- RENDER MENU ---
-  function renderMenu() {
-    const container = document.getElementById('menuCatalogContainer');
-    if (!container || !window.EBENEZER_CATALOG) return;
-
-    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
-
-    let html = '';
-    window.EBENEZER_CATALOG.forEach(cat => {
-      if (activeCategory !== 'all' && activeCategory !== cat.id) return;
-
-      const catName = currentLang === 'es' ? cat.name_es : cat.name_en;
-
-      // Filter items
-      const items = cat.items.filter(it => {
-        const name = (currentLang === 'es' ? it.name_es : it.name_en).toLowerCase();
-        const desc = (currentLang === 'es' ? it.description_es : it.description_en).toLowerCase();
-        return name.includes(searchTerm) || desc.includes(searchTerm);
-      });
-
-      if (items.length === 0) return;
-
-      html += `
-        <section class="category-section" id="cat-${cat.id}">
-          <div class="category-header">
-            <h2 class="category-title">${cat.icon} ${catName}</h2>
-            <span class="category-count">(${items.length} ${currentLang === 'es' ? 'platillos' : 'items'})</span>
-          </div>
-          <div class="items-grid">
-      `;
-
-      items.forEach(it => {
-        const name = currentLang === 'es' ? it.name_es : it.name_en;
-        const desc = currentLang === 'es' ? it.description_es : it.description_en;
-        const savingsBadge = it.savings > 1.5 
-          ? `<div class="item-badge-top">${currentLang === 'es' ? `Ahorras $${it.savings.toFixed(2)}` : `Save $${it.savings.toFixed(2)}`}</div>`
-          : '';
-
-        const pupusaTag = it.is_pupusa 
-          ? `<span class="pupusa-tag">🌽 ${currentLang === 'es' ? 'Hecha a mano' : 'Handmade'}</span>`
-          : '';
-
-        const actionBtn = it.is_pupusa
-          ? `<button class="btn-add" onclick="openPupusaModal(${it.id})">🫓 ${t('customizePupusa')}</button>`
-          : `<button class="btn-add" onclick="quickAddItem(${it.id})">${t('addToCart')}</button>`;
-
-        html += `
-          <div class="item-card ${it.is_pupusa ? 'highlight' : ''}">
-            ${savingsBadge}
-            <div class="item-main">
-              <div class="item-header">
-                <h3 class="item-name">${name}</h3>
-              </div>
-              <p class="item-desc">${desc}</p>
-              <div class="item-pricing">
-                <span class="price-current">$${it.price.toFixed(2)}</span>
-                ${it.old_price > it.price ? `<span class="price-old">$${it.old_price.toFixed(2)}</span>` : ''}
-                ${it.savings > 1.5 ? `<span class="price-savings">-${Math.round((it.savings / it.old_price) * 100)}%</span>` : ''}
-              </div>
-            </div>
-            <div class="item-footer">
-              ${pupusaTag}
-              ${actionBtn}
-            </div>
-          </div>
-        `;
-      });
-
-      html += `
-          </div>
-        </section>
-      `;
-    });
-
-    if (html === '') {
-      html = `
-        <div style="text-align:center; padding: 60px 20px; color:#64748b;">
-          <h3>${currentLang === 'es' ? 'No se encontraron platillos con esa búsqueda.' : 'No dishes matched your search.'}</h3>
-        </div>
-      `;
-    }
-
-    container.innerHTML = html;
+  function saveCart() {
+    try {
+      localStorage.setItem('ebenezer_cart_v2', JSON.stringify(state.cart));
+    } catch (e) {}
   }
 
-  // --- CART MANAGEMENT ---
-  function findItem(id) {
+  function t(key, params = {}) {
+    let str = (I18N[state.lang] && I18N[state.lang][key]) || (I18N.es && I18N.es[key]) || key;
+    Object.keys(params).forEach(k => {
+      str = str.replace(`{${k}}`, params[k]);
+    });
+    return str;
+  }
+
+  // Find item by ID in catalog
+  function findCatalogItem(id) {
+    if (!window.EBENEZER_CATALOG) return null;
     for (const cat of window.EBENEZER_CATALOG) {
-      for (const it of cat.items) {
-        if (it.id === id) return it;
+      for (const item of cat.items) {
+        if (item.id === id) return item;
       }
     }
     return null;
   }
 
-  window.quickAddItem = function(id) {
-    const item = findItem(id);
+  // Calculate pricing for a cart item
+  function getItemPrice(item, dough) {
+    let base = item.price;
+    if (item.is_pupusa && dough === 'rice') {
+      base += (window.EBENEZER_INFO ? window.EBENEZER_INFO.riceSurcharge : 0.50);
+    }
+    return base;
+  }
+
+  function getCartTotals() {
+    let subtotal = 0;
+    let count = 0;
+    state.cart.forEach(entry => {
+      const item = findCatalogItem(entry.id);
+      if (item) {
+        const unit = getItemPrice(item, entry.dough);
+        subtotal += unit * entry.qty;
+        count += entry.qty;
+      }
+    });
+    const taxRate = (window.EBENEZER_INFO && window.EBENEZER_INFO.taxRate) || 0.095;
+    const tax = Math.round(subtotal * taxRate * 100) / 100;
+    const total = subtotal + tax;
+    return { subtotal, tax, total, count };
+  }
+
+  // --- 3. DOM Elements ---
+  const el = {
+    langBtn: document.getElementById('langBtn'),
+    statusDot: document.getElementById('statusDot'),
+    statusText: document.getElementById('statusText'),
+    categoryTabs: document.getElementById('categoryTabs'),
+    menuColumn: document.getElementById('menuColumn'),
+    desktopCartBody: document.getElementById('desktopCartBody'),
+    sheetCartBody: document.getElementById('sheetCartBody'),
+    mobileCartBar: document.getElementById('mobileCartBar'),
+    mBarCount: document.getElementById('mBarCount'),
+    mBarTotal: document.getElementById('mBarTotal'),
+    cartDialog: document.getElementById('cartDialog'),
+    closeSheetBtn: document.getElementById('closeSheetBtn'),
+    hoursTable: document.getElementById('hoursTable'),
+    toastUndo: document.getElementById('toastUndo'),
+    toastText: document.getElementById('toastText'),
+    toastUndoBtn: document.getElementById('toastUndoBtn')
+  };
+
+  // --- 4. Live Open / Closed Status ---
+  function updateOpenStatus() {
+    if (!window.EBENEZER_INFO || !window.EBENEZER_INFO.hours) return;
+    const now = new Date();
+    // Convert to America/Los_Angeles time
+    const laString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+    const laDate = new Date(laString);
+    const day = laDate.getDay();
+    const hoursToday = window.EBENEZER_INFO.hours[day];
+
+    if (!hoursToday) return;
+
+    const [openH, openM] = hoursToday[0].split(':').map(Number);
+    const [closeH, closeM] = hoursToday[1].split(':').map(Number);
+
+    const openMin = openH * 60 + openM;
+    const closeMin = closeH * 60 + closeM;
+    const currentMin = laDate.getHours() * 60 + laDate.getMinutes();
+
+    const isOpen = currentMin >= openMin && currentMin < closeMin;
+
+    if (isOpen) {
+      el.statusDot.classList.remove('closed');
+      const closeDisplay = formatTimeDisplay(hoursToday[1]);
+      el.statusText.textContent = t('openUntil', { t: closeDisplay });
+    } else {
+      el.statusDot.classList.add('closed');
+      const nextDay = (day + 1) % 7;
+      const nextOpen = window.EBENEZER_INFO.hours[nextDay] ? window.EBENEZER_INFO.hours[nextDay][0] : "6:00";
+      const openDisplay = formatTimeDisplay(nextOpen);
+      el.statusText.textContent = t('closedUntil', { t: openDisplay });
+    }
+  }
+
+  function formatTimeDisplay(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 || 12;
+    const displayM = m === 0 ? '' : `:${m < 10 ? '0' : ''}${m}`;
+    return `${displayH}${displayM} ${ampm}`;
+  }
+
+  // --- 5. Render Hours Table ---
+  function renderHoursTable() {
+    if (!el.hoursTable || !window.EBENEZER_INFO) return;
+    const now = new Date();
+    const laString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+    const today = new Date(laString).getDay();
+    const days = I18N[state.lang].days;
+
+    let html = '';
+    // Display Monday through Sunday (1 to 6, then 0)
+    const order = [1, 2, 3, 4, 5, 6, 0];
+    order.forEach(d => {
+      const isToday = d === today;
+      const hours = window.EBENEZER_INFO.hours[d];
+      const timeStr = hours ? `${formatTimeDisplay(hours[0])} – ${formatTimeDisplay(hours[1])}` : 'Cerrado';
+      html += `
+        <tr class="${isToday ? 'today' : ''}">
+          <td>${days[d]} ${isToday ? '•' : ''}</td>
+          <td style="text-align: right;">${timeStr}</td>
+        </tr>
+      `;
+    });
+    el.hoursTable.innerHTML = html;
+  }
+
+  // --- 6. Render Tabs & ScrollSpy ---
+  function renderTabs() {
+    if (!el.categoryTabs || !window.EBENEZER_CATALOG) return;
+    const html = window.EBENEZER_CATALOG.map((cat, idx) => {
+      const name = state.lang === 'en' ? cat.name_en : cat.name_es;
+      return `<a href="#${cat.id}" class="tab-link ${idx === 0 ? 'active' : ''}" data-cat="${cat.id}">${name}</a>`;
+    }).join('');
+    el.categoryTabs.innerHTML = html;
+  }
+
+  function setupScrollSpy() {
+    const sections = document.querySelectorAll('.menu-section');
+    const tabLinks = document.querySelectorAll('.tab-link');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          tabLinks.forEach(link => {
+            if (link.getAttribute('data-cat') === id) {
+              link.classList.add('active');
+              // Smooth scroll tab into view horizontally
+              link.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(sec => observer.observe(sec));
+  }
+
+  // --- 7. Render Menu ---
+  function renderMenu() {
+    if (!el.menuColumn || !window.EBENEZER_CATALOG) return;
+
+    let html = '';
+    window.EBENEZER_CATALOG.forEach(cat => {
+      const catName = state.lang === 'en' ? cat.name_en : cat.name_es;
+      const catSub = state.lang === 'en' ? (cat.sub_en || '') : (cat.sub_es || '');
+      const isPupusaCat = cat.id === 'pupusas';
+
+      html += `
+        <section class="menu-section ${isPupusaCat ? 'pupusas-section' : ''}" id="${cat.id}">
+          <header class="section-head">
+            <h2 class="section-title">${catName}</h2>
+            ${catSub ? `<p class="section-sub">${catSub}</p>` : ''}
+          </header>
+      `;
+
+      if (isPupusaCat) {
+        html += `
+          <div class="dough-selector-wrap">
+            <span class="dough-label">${t('dough')}:</span>
+            <div class="dough-segmented" role="group" aria-label="${t('dough')}">
+              <button class="dough-option ${state.dough === 'corn' ? 'active' : ''}" data-dough="corn">${t('corn')}</button>
+              <button class="dough-option ${state.dough === 'rice' ? 'active' : ''}" data-dough="rice">${t('rice')} ${t('riceExtra')}</button>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `<div class="items-container ${!isPupusaCat ? 'grid-2col' : ''}">`;
+
+      cat.items.forEach(item => {
+        const primaryName = state.lang === 'en' ? item.name_en : item.name_es;
+        const altName = state.lang === 'en' ? item.name_es : '';
+        const desc = state.lang === 'en' ? item.description_en : item.description_es;
+        const currentDough = item.is_pupusa ? state.dough : null;
+        const itemKey = item.is_pupusa ? `${item.id}_${currentDough}` : `${item.id}`;
+        const cartEntry = state.cart.find(c => c.key === itemKey);
+        const qty = cartEntry ? cartEntry.qty : 0;
+        const displayPrice = getItemPrice(item, currentDough);
+
+        html += `
+          <article class="item-row" data-id="${item.id}" data-is-pupusa="${item.is_pupusa}">
+            <div class="item-info">
+              <h3 class="item-name">${primaryName}</h3>
+              ${altName ? `<p class="item-alt-name" lang="es">${altName}</p>` : ''}
+              ${desc ? `<p class="item-desc">${desc}</p>` : ''}
+            </div>
+            <div class="item-action">
+              <span class="item-price">$${displayPrice.toFixed(2)}</span>
+              <div class="action-slot" data-key="${itemKey}" data-id="${item.id}">
+                ${renderItemButtonOrStepper(item, itemKey, qty)}
+              </div>
+            </div>
+          </article>
+        `;
+      });
+
+      html += `</div></section>`;
+    });
+
+    el.menuColumn.innerHTML = html;
+  }
+
+  function renderItemButtonOrStepper(item, key, qty) {
+    if (qty > 0) {
+      return `
+        <div class="stepper" role="group" aria-label="${item.name_es}">
+          <button class="stepper-btn step-minus" data-key="${key}" data-id="${item.id}" aria-label="Quitar uno">−</button>
+          <span class="stepper-qty">${qty}</span>
+          <button class="stepper-btn step-plus" data-key="${key}" data-id="${item.id}" aria-label="Agregar uno">+</button>
+        </div>
+      `;
+    } else {
+      return `
+        <button class="add-btn" data-key="${key}" data-id="${item.id}" aria-label="Agregar ${item.name_es}">+</button>
+      `;
+    }
+  }
+
+  // --- 8. Render Cart & Checkout (Shared Component) ---
+  function renderCartComponent() {
+    const { subtotal, tax, total, count } = getCartTotals();
+
+    // Update mobile bottom bar
+    if (count > 0) {
+      el.mobileCartBar.classList.add('visible');
+      el.mBarCount.textContent = count;
+      el.mBarTotal.textContent = `$${total.toFixed(2)}`;
+    } else {
+      el.mobileCartBar.classList.remove('visible');
+      if (el.cartDialog && el.cartDialog.open && state.step === 1) {
+        el.cartDialog.close();
+      }
+    }
+
+    const html = buildCartHTML(subtotal, tax, total, count);
+    if (el.desktopCartBody) el.desktopCartBody.innerHTML = html;
+    if (el.sheetCartBody) el.sheetCartBody.innerHTML = html;
+  }
+
+  function buildCartHTML(subtotal, tax, total, count) {
+    if (state.step === 1) {
+      if (count === 0) {
+        return `
+          <div class="cart-empty">
+            <svg class="icon cart-empty-icon" style="width: 48px; height: 48px;"><use href="#icon-bag"></use></svg>
+            <p>${t('emptyCart')}</p>
+          </div>
+        `;
+      }
+
+      let linesHtml = '<div class="cart-lines">';
+      state.cart.forEach(entry => {
+        const item = findCatalogItem(entry.id);
+        if (!item) return;
+        const itemName = state.lang === 'en' ? item.name_en : item.name_es;
+        const doughLabel = entry.dough ? (entry.dough === 'rice' ? t('rice') : t('corn')) : '';
+        const unit = getItemPrice(item, entry.dough);
+        const lineTotal = unit * entry.qty;
+
+        linesHtml += `
+          <div class="cart-line">
+            <div class="line-info">
+              <div class="line-name">${itemName}</div>
+              ${doughLabel ? `<div class="line-dough">${t('dough')}: ${doughLabel}</div>` : ''}
+              <div class="stepper" style="margin-top: 6px;">
+                <button class="stepper-btn step-minus" data-key="${entry.key}" data-id="${entry.id}">−</button>
+                <span class="stepper-qty">${entry.qty}</span>
+                <button class="stepper-btn step-plus" data-key="${entry.key}" data-id="${entry.id}">+</button>
+              </div>
+            </div>
+            <div class="line-side">
+              <span class="line-price">$${lineTotal.toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      });
+      linesHtml += '</div>';
+
+      return `
+        ${linesHtml}
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>${t('subtotal')}</span>
+            <span>$${subtotal.toFixed(2)}</span>
+          </div>
+          <div class="summary-row">
+            <span>${t('tax')}</span>
+            <span>$${tax.toFixed(2)}</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>${t('total')}</span>
+            <span>$${total.toFixed(2)}</span>
+          </div>
+          <button class="primary-btn" id="btnContinueCheckout">
+            ${t('continue')} · $${total.toFixed(2)}
+          </button>
+        </div>
+      `;
+    }
+
+    if (state.step === 2) {
+      return `
+        <div class="checkout-form">
+          <div class="form-group">
+            <label class="form-label" for="inputName">${t('name')}</label>
+            <input type="text" id="inputName" class="form-input" placeholder="${t('namePh')}" value="${state.formData.name}" required autocomplete="name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inputPhone">${t('phone')}</label>
+            <input type="tel" id="inputPhone" class="form-input" placeholder="${t('phonePh')}" value="${state.formData.phone}" required autocomplete="tel">
+          </div>
+          <div class="form-group">
+            <label class="form-label">${t('pickupTime')}</label>
+            <div class="time-pills">
+              <button class="time-pill ${state.pickupTimeChoice === 'asap' ? 'active' : ''}" data-time="asap">${t('asap')}</button>
+              <button class="time-pill ${state.pickupTimeChoice === 'plus30' ? 'active' : ''}" data-time="plus30">${t('plus30')}</button>
+              <button class="time-pill ${state.pickupTimeChoice === 'plus60' ? 'active' : ''}" data-time="plus60">${t('plus60')}</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="inputNote">${t('note')}</label>
+            <textarea id="inputNote" class="form-textarea" placeholder="${t('notePh')}">${state.formData.note}</textarea>
+          </div>
+          <div class="payment-notice">
+            <svg class="icon"><use href="#icon-check"></use></svg>
+            <span>${t('payAtPickup')}</span>
+          </div>
+          <p class="field-error" id="formError">${t('enterNamePhone')}</p>
+          <button class="primary-btn" id="btnPlaceOrder">
+            ${t('send')} · $${total.toFixed(2)}
+          </button>
+          <a href="#" class="secondary-link" id="btnBackToCart">← ${t('back')}</a>
+        </div>
+      `;
+    }
+
+    if (state.step === 3 && state.lastOrder) {
+      const order = state.lastOrder;
+      const waText = encodeURIComponent(
+        `¡Hola Ebenezer! Acabo de hacer el pedido ${order.orderId} para recoger.\n` +
+        `Nombre: ${order.customerName}\n` +
+        `Total: $${order.total.toFixed(2)}\n` +
+        `Artículos: ${order.itemsSummary}`
+      );
+      const waLink = `https://wa.me/17472453571?text=${waText}`;
+
+      return `
+        <div class="confirm-wrap">
+          <svg class="icon confirm-icon"><use href="#icon-check"></use></svg>
+          <h3 class="confirm-title">${t('sent')}</h3>
+          <div class="order-number">${order.orderId}</div>
+          <div class="confirm-card">
+            <div class="confirm-row">
+              <span><strong>${t('readyAt')}:</strong></span>
+              <span>${order.readyTime}</span>
+            </div>
+            <div class="confirm-row">
+              <span><strong>${t('total')}:</strong></span>
+              <span>$${order.total.toFixed(2)}</span>
+            </div>
+            <div class="confirm-row">
+              <span><strong>${t('location')}:</strong></span>
+              <span>8672 Lindley Ave</span>
+            </div>
+          </div>
+          <div class="confirm-actions">
+            <a href="${waLink}" target="_blank" rel="noopener" class="primary-btn btn-whatsapp">
+              ${t('alsoWhatsApp')}
+            </a>
+            <a href="tel:+17472453571" class="action-pill" style="justify-content: center; height: 44px;">
+              <svg class="icon"><use href="#icon-phone"></use></svg>
+              <span>${t('call')} (747) 245-3571</span>
+            </a>
+            <button class="secondary-link" id="btnDoneOrder">${t('done')}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  // --- 9. Cart Mutations & Event Handlers ---
+  function addItem(id, customDough = null) {
+    const item = findCatalogItem(id);
     if (!item) return;
 
-    const existing = cart.find(ci => ci.id === id && !ci.customizations);
+    const dough = item.is_pupusa ? (customDough || state.dough) : null;
+    const key = item.is_pupusa ? `${id}_${dough}` : `${id}`;
+
+    const existing = state.cart.find(c => c.key === key);
     if (existing) {
       existing.qty += 1;
     } else {
-      cart.push({
-        id: item.id,
-        name_es: item.name_es,
-        name_en: item.name_en,
-        price: item.price,
-        old_price: item.old_price,
-        qty: 1,
-        customizations: null
-      });
+      state.cart.push({ key, id, dough, qty: 1 });
     }
 
     saveCart();
-    updateCartUI();
-    showCartDrawer();
-  };
-
-  window.openPupusaModal = function(id) {
-    const item = findItem(id);
-    if (!item) return;
-
-    activePupusaItem = item;
-    const name = currentLang === 'es' ? item.name_es : item.name_en;
-    document.getElementById('pupusaModalItemName').textContent = name;
-    document.getElementById('pupusaModalPrice').textContent = `$${item.price.toFixed(2)}`;
-
-    // Reset fields
-    document.getElementById('doughCorn').checked = true;
-    document.getElementById('doughRice').checked = false;
-    document.getElementById('extraCurtido').checked = false;
-    document.getElementById('extraSalsaRoja').checked = false;
-    document.getElementById('extraSalsaPicante').checked = false;
-    document.getElementById('pupusaStyleNormal').checked = true;
-    document.getElementById('pupusaStyleCrispy').checked = false;
-    document.getElementById('pupusaNotes').value = '';
-    document.getElementById('pupusaQtyModal').value = '1';
-
-    updatePillStyles();
-    document.getElementById('pupusaModal').classList.add('open');
-  };
-
-  window.closePupusaModal = function() {
-    document.getElementById('pupusaModal').classList.remove('open');
-  };
-
-  window.updatePillStyles = function() {
-    document.querySelectorAll('.choice-pill').forEach(pill => {
-      const radio = pill.querySelector('input');
-      if (radio && radio.checked) {
-        pill.classList.add('selected');
-      } else {
-        pill.classList.remove('selected');
-      }
-    });
-  };
-
-  window.addCustomizedPupusaToCart = function() {
-    if (!activePupusaItem) return;
-
-    const isRice = document.getElementById('doughRice').checked;
-    const extraCurtido = document.getElementById('extraCurtido').checked;
-    const extraSalsaRoja = document.getElementById('extraSalsaRoja').checked;
-    const extraSalsaPicante = document.getElementById('extraSalsaPicante').checked;
-    const isCrispy = document.getElementById('pupusaStyleCrispy').checked;
-    const notes = document.getElementById('pupusaNotes').value.trim();
-    const qty = parseInt(document.getElementById('pupusaQtyModal').value) || 1;
-
-    let unitPrice = activePupusaItem.price;
-    let doughLabel = isRice ? (currentLang === 'es' ? 'Harina de Arroz (+$0.50)' : 'Rice Flour (+$0.50)') : (currentLang === 'es' ? 'Masa de Maíz' : 'Corn Masa');
-    if (isRice) {
-      unitPrice += 0.50;
-    }
-
-    let extras = [];
-    if (extraCurtido) extras.push(currentLang === 'es' ? 'Curtido Extra' : 'Extra Curtido');
-    if (extraSalsaRoja) extras.push(currentLang === 'es' ? 'Salsa Roja Extra' : 'Extra Tomato Salsa');
-    if (extraSalsaPicante) extras.push(currentLang === 'es' ? 'Salsa Picante' : 'Spicy Salsa');
-    if (isCrispy) extras.push(currentLang === 'es' ? 'Bien Doradita' : 'Well Done Crispy');
-
-    cart.push({
-      id: activePupusaItem.id,
-      name_es: activePupusaItem.name_es,
-      name_en: activePupusaItem.name_en,
-      price: unitPrice,
-      old_price: activePupusaItem.old_price,
-      qty: qty,
-      customizations: {
-        dough: doughLabel,
-        extras: extras.join(', '),
-        notes: notes
-      }
-    });
-
-    saveCart();
-    updateCartUI();
-    closePupusaModal();
-    showCartDrawer();
-  };
-
-  function saveCart() {
-    localStorage.setItem('ebenezer_cart', JSON.stringify(cart));
+    renderCartComponent();
+    updateMenuRowButton(key);
   }
 
-  function updateCartUI() {
-    const badge = document.getElementById('cartBadgeCount');
-    const totalItems = cart.reduce((acc, it) => acc + it.qty, 0);
-    if (badge) badge.textContent = totalItems;
+  function removeItem(key) {
+    const idx = state.cart.findIndex(c => c.key === key);
+    if (idx === -1) return;
 
-    const list = document.getElementById('cartItemsList');
-    if (!list) return;
+    const entry = state.cart[idx];
+    if (entry.qty > 1) {
+      entry.qty -= 1;
+      saveCart();
+      renderCartComponent();
+      updateMenuRowButton(key);
+    } else {
+      // Remove line completely & show Undo toast
+      state.lastRemovedItem = { ...entry, index: idx };
+      state.cart.splice(idx, 1);
+      saveCart();
+      renderCartComponent();
+      updateMenuRowButton(key);
+      showUndoToast();
+    }
+  }
 
-    if (cart.length === 0) {
-      list.innerHTML = `
-        <div class="cart-empty">
-          <div class="cart-empty-icon">🫓</div>
-          <h4>${t('cartEmptyTitle')}</h4>
-          <p>${t('cartEmptyDesc')}</p>
-        </div>
-      `;
-      document.getElementById('cartFooter').style.display = 'none';
+  function updateMenuRowButton(key) {
+    const slot = document.querySelector(`.action-slot[data-key="${key}"]`);
+    if (!slot) return;
+    const id = Number(slot.getAttribute('data-id'));
+    const item = findCatalogItem(id);
+    if (!item) return;
+    const entry = state.cart.find(c => c.key === key);
+    const qty = entry ? entry.qty : 0;
+    slot.innerHTML = renderItemButtonOrStepper(item, key, qty);
+  }
+
+  function showUndoToast() {
+    if (!el.toastUndo) return;
+    el.toastText.textContent = t('itemRemoved');
+    el.toastUndo.classList.add('visible');
+    clearTimeout(state.undoTimer);
+    state.undoTimer = setTimeout(() => {
+      el.toastUndo.classList.remove('visible');
+      state.lastRemovedItem = null;
+    }, 4500);
+  }
+
+  function undoRemove() {
+    if (!state.lastRemovedItem) return;
+    const item = state.lastRemovedItem;
+    state.cart.splice(item.index, 0, { key: item.key, id: item.id, dough: item.dough, qty: item.qty });
+    state.lastRemovedItem = null;
+    el.toastUndo.classList.remove('visible');
+    saveCart();
+    renderCartComponent();
+    updateMenuRowButton(item.key);
+  }
+
+  // --- 10. Submit Order ---
+  function submitOrder() {
+    const nameInput = document.getElementById('inputName');
+    const phoneInput = document.getElementById('inputPhone');
+    const noteInput = document.getElementById('inputNote');
+    const errEl = document.getElementById('formError');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const note = noteInput ? noteInput.value.trim() : '';
+
+    if (!name || !phone) {
+      if (errEl) errEl.classList.add('visible');
       return;
     }
+    if (errEl) errEl.classList.remove('visible');
 
-    document.getElementById('cartFooter').style.display = 'block';
+    state.formData.name = name;
+    state.formData.phone = phone;
+    state.formData.note = note;
 
-    let subtotal = 0;
-    let oldSubtotal = 0;
-    let html = '';
+    const { subtotal, tax, total } = getCartTotals();
+    const orderId = `EB-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    cart.forEach((item, index) => {
-      const name = currentLang === 'es' ? item.name_es : item.name_en;
-      const itemTotal = item.price * item.qty;
-      subtotal += itemTotal;
-      oldSubtotal += item.old_price * item.qty;
+    // Calculate pickup ready time
+    const readyMinOffset = state.pickupTimeChoice === 'plus60' ? 60 : (state.pickupTimeChoice === 'plus30' ? 30 : 20);
+    const readyDate = new Date(Date.now() + readyMinOffset * 60000);
+    const readyTimeStr = readyDate.toLocaleTimeString("en-US", { hour: 'numeric', minute: '2-digit', hour12: true });
 
-      let metaHtml = '';
-      if (item.customizations) {
-        let parts = [];
-        if (item.customizations.dough) parts.push(`<strong>${item.customizations.dough}</strong>`);
-        if (item.customizations.extras) parts.push(item.customizations.extras);
-        if (item.customizations.notes) parts.push(`<em>"${item.customizations.notes}"</em>`);
-        metaHtml = `<div class="cart-item-meta">${parts.join(' • ')}</div>`;
-      }
-
-      html += `
-        <div class="cart-item-row">
-          <div class="cart-item-info">
-            <div class="cart-item-title">${name}</div>
-            ${metaHtml}
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
-              <span class="qty-display">${item.qty}</span>
-              <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
-              <button class="qty-btn" style="color:#ef4444; margin-left:8px;" onclick="removeItem(${index})">🗑️</button>
-            </div>
-          </div>
-          <div class="cart-item-price">$${itemTotal.toFixed(2)}</div>
-        </div>
-      `;
+    // Item summary for kitchen and WhatsApp
+    const itemsList = state.cart.map(c => {
+      const it = findCatalogItem(c.id);
+      const nameStr = it ? it.name_es : 'Artículo';
+      const doughStr = c.dough ? ` (${c.dough === 'rice' ? 'Arroz' : 'Maíz'})` : '';
+      return `${c.qty}x ${nameStr}${doughStr}`;
     });
 
-    list.innerHTML = html;
-
-    // Totals calculation
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax;
-    const totalSavings = Math.max(0, oldSubtotal - subtotal);
-
-    document.getElementById('summarySubtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('summaryTax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('summaryTotal').textContent = `$${total.toFixed(2)}`;
-
-    const savingsBanner = document.getElementById('cartSavingsBanner');
-    if (savingsBanner) {
-      if (totalSavings > 0) {
-        savingsBanner.style.display = 'flex';
-        savingsBanner.innerHTML = `🎉 ${t('savingsCallout')}<strong>$${totalSavings.toFixed(2)}</strong> ${t('savingsCalloutEnd')}`;
-      } else {
-        savingsBanner.style.display = 'none';
-      }
-    }
-  }
-
-  window.changeQty = function(index, delta) {
-    if (!cart[index]) return;
-    cart[index].qty += delta;
-    if (cart[index].qty <= 0) {
-      cart.splice(index, 1);
-    }
-    saveCart();
-    updateCartUI();
-  };
-
-  window.removeItem = function(index) {
-    cart.splice(index, 1);
-    saveCart();
-    updateCartUI();
-  };
-
-  window.showCartDrawer = function() {
-    document.getElementById('cartDrawerOverlay').classList.add('open');
-  };
-
-  window.closeCartDrawer = function() {
-    document.getElementById('cartDrawerOverlay').classList.remove('open');
-  };
-
-  // --- CHECKOUT & WHATSAPP INTEGRATION ---
-  window.openCheckoutModal = function() {
-    if (cart.length === 0) return;
-    closeCartDrawer();
-    document.getElementById('checkoutModal').classList.add('open');
-  };
-
-  window.closeCheckoutModal = function() {
-    document.getElementById('checkoutModal').classList.remove('open');
-  };
-
-  window.confirmOrder = function(e) {
-    if (e) e.preventDefault();
-
-    const name = document.getElementById('custName').value.trim() || 'Cliente';
-    const phone = document.getElementById('custPhone').value.trim() || 'No provisto';
-    const time = document.getElementById('pickupTimeSelect').value;
-    const payment = document.querySelector('input[name="paymentMethod"]:checked').value;
-
-    let subtotal = 0;
-    cart.forEach(it => subtotal += it.price * it.qty);
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax;
-
-    const orderNumber = `EBZ-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const orderObj = {
-      orderNumber,
-      createdAt: new Date().toISOString(),
+    const orderPayload = {
+      orderId,
+      orderNumber: orderId,
+      customerName: name,
       customer: { name, phone },
-      pickupTime: time,
-      paymentMethod: payment,
-      items: cart,
+      phone,
+      note,
+      pickupTimeChoice: state.pickupTimeChoice,
+      pickupTime: readyTimeStr,
+      readyTime: readyTimeStr,
       subtotal,
       tax,
       total,
+      items: state.cart.map(c => {
+        const it = findCatalogItem(c.id) || {};
+        return {
+          id: c.id,
+          key: c.key,
+          name_es: it.name_es || '',
+          name: it.name_es || '',
+          dough: c.dough,
+          qty: c.qty,
+          price: getItemPrice(it, c.dough),
+          unitPrice: getItemPrice(it, c.dough),
+          customizations: c.dough ? {
+            dough: c.dough === 'rice' ? 'Harina de Arroz (+$0.50)' : 'Masa de Maíz',
+            notes: note || undefined
+          } : (note ? { notes: note } : null)
+        };
+      }),
+      itemsSummary: itemsList.join(', '),
+      createdAt: new Date().toISOString(),
       status: 'new'
     };
 
-    // Store in active orders array for the Kitchen view
-    const allOrders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
-    allOrders.unshift(orderObj);
-    localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(allOrders));
+    // Save to localStorage for kitchen.html integration
+    try {
+      const existingOrders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      existingOrders.unshift(orderPayload);
+      localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(existingOrders));
+    } catch (e) {}
 
-    // Clear cart
-    cart = [];
+    state.lastOrder = orderPayload;
+    state.cart = [];
     saveCart();
-    updateCartUI();
-    closeCheckoutModal();
+    state.step = 3;
 
-    // Show Confirmation Modal
-    document.getElementById('confirmOrderNum').textContent = orderNumber;
-    document.getElementById('confirmOrderTotal').textContent = `$${total.toFixed(2)}`;
-    document.getElementById('confirmOrderTime').textContent = time;
-    document.getElementById('orderSuccessModal').classList.add('open');
-  };
-
-  window.closeSuccessModal = function() {
-    document.getElementById('orderSuccessModal').classList.remove('open');
-  };
-
-  // WhatsApp formatted direct order message
-  window.sendOrderByWhatsApp = function() {
-    if (cart.length === 0) return;
-
-    let subtotal = 0;
-    cart.forEach(it => subtotal += it.price * it.qty);
-    const tax = subtotal * TAX_RATE;
-    const total = subtotal + tax;
-
-    let msg = `*NUEVO PEDIDO DIRECTO — RESTAURANTE EBENEZER*\n`;
-    msg += `----------------------------------------\n`;
-    cart.forEach(it => {
-      const name = currentLang === 'es' ? it.name_es : it.name_en;
-      msg += `• *${it.qty}x* ${name} ($${(it.price * it.qty).toFixed(2)})\n`;
-      if (it.customizations) {
-        if (it.customizations.dough) msg += `   - Masa: ${it.customizations.dough}\n`;
-        if (it.customizations.extras) msg += `   - Extras: ${it.customizations.extras}\n`;
-        if (it.customizations.notes) msg += `   - Nota: ${it.customizations.notes}\n`;
-      }
-    });
-    msg += `----------------------------------------\n`;
-    msg += `*Subtotal:* $${subtotal.toFixed(2)}\n`;
-    msg += `*Impuesto (9.5%):* $${tax.toFixed(2)}\n`;
-    msg += `*Tarifa Servicio:* $0.00 (Orden Directa Sin Comisión)\n`;
-    msg += `*TOTAL A PAGAR:* $${total.toFixed(2)}\n`;
-    msg += `----------------------------------------\n`;
-    msg += `*Tipo de Pedido:* Para Recoger en Mostrador (8672 Lindley Ave)\n`;
-    msg += `*Tiempo Estimado:* 20 - 25 minutos\n`;
-    msg += `¡Muchas gracias!`;
-
-    const encoded = encodeURIComponent(msg);
-    window.open(`https://wa.me/${RESTAURANT_PHONE}?text=${encoded}`, '_blank');
-  };
-
-  // Event Listeners
-  function setupEventListeners() {
-    const search = document.getElementById('searchInput');
-    if (search) {
-      search.addEventListener('input', () => renderMenu());
-    }
+    renderCartComponent();
+    renderMenu(); // refresh steppers
   }
 
-})();
+  // --- 11. Event Delegation Setup ---
+  function initEvents() {
+    // Language toggle
+    if (el.langBtn) {
+      el.langBtn.addEventListener('click', () => {
+        state.lang = state.lang === 'es' ? 'en' : 'es';
+        localStorage.setItem('ebenezer_lang', state.lang);
+        document.documentElement.lang = state.lang;
+        el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
 
+        // Update all data-i18n elements
+        document.querySelectorAll('[data-i18n]').forEach(node => {
+          const key = node.getAttribute('data-i18n');
+          node.textContent = t(key);
+        });
+
+        updateOpenStatus();
+        renderHoursTable();
+        renderTabs();
+        renderMenu();
+        renderCartComponent();
+      });
+    }
+
+    // Mobile cart bar click -> open bottom sheet
+    if (el.mobileCartBar) {
+      el.mobileCartBar.addEventListener('click', () => {
+        if (el.cartDialog) {
+          el.cartDialog.showModal();
+        }
+      });
+    }
+
+    // Close sheet button
+    if (el.closeSheetBtn) {
+      el.closeSheetBtn.addEventListener('click', () => {
+        if (el.cartDialog) el.cartDialog.close();
+      });
+    }
+
+    // Close sheet when tapping backdrop
+    if (el.cartDialog) {
+      el.cartDialog.addEventListener('click', (e) => {
+        const rect = el.cartDialog.getBoundingClientRect();
+        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height
+          && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
+        if (e.target === el.cartDialog) {
+          el.cartDialog.close();
+        }
+      });
+    }
+
+    // Undo toast button
+    if (el.toastUndoBtn) {
+      el.toastUndoBtn.addEventListener('click', undoRemove);
+    }
+
+    // Delegated clicks inside <main>
+    document.addEventListener('click', (e) => {
+      // Dough selector click
+      const doughBtn = e.target.closest('.dough-option');
+      if (doughBtn) {
+        const chosen = doughBtn.getAttribute('data-dough');
+        if (chosen && chosen !== state.dough) {
+          state.dough = chosen;
+          renderMenu();
+        }
+        return;
+      }
+
+      // Add button click
+      const addBtn = e.target.closest('.add-btn');
+      if (addBtn) {
+        const id = Number(addBtn.getAttribute('data-id'));
+        addItem(id);
+        return;
+      }
+
+      // Stepper plus click
+      const stepPlus = e.target.closest('.step-plus');
+      if (stepPlus) {
+        const key = stepPlus.getAttribute('data-key');
+        const id = Number(stepPlus.getAttribute('data-id'));
+        addItem(id, key.includes('rice') ? 'rice' : (key.includes('corn') ? 'corn' : null));
+        return;
+      }
+
+      // Stepper minus click
+      const stepMinus = e.target.closest('.step-minus');
+      if (stepMinus) {
+        const key = stepMinus.getAttribute('data-key');
+        removeItem(key);
+        return;
+      }
+
+      // Continue to checkout step 2
+      const btnContinue = e.target.closest('#btnContinueCheckout');
+      if (btnContinue) {
+        state.step = 2;
+        renderCartComponent();
+        return;
+      }
+
+      // Back to cart step 1
+      const btnBack = e.target.closest('#btnBackToCart');
+      if (btnBack) {
+        e.preventDefault();
+        state.step = 1;
+        renderCartComponent();
+        return;
+      }
+
+      // Place order button
+      const btnPlace = e.target.closest('#btnPlaceOrder');
+      if (btnPlace) {
+        submitOrder();
+        return;
+      }
+
+      // Time pill click
+      const timePill = e.target.closest('.time-pill');
+      if (timePill) {
+        state.pickupTimeChoice = timePill.getAttribute('data-time') || 'asap';
+        renderCartComponent();
+        return;
+      }
+
+      // Order confirmation "Done" button
+      const btnDone = e.target.closest('#btnDoneOrder');
+      if (btnDone) {
+        state.step = 1;
+        state.lastOrder = null;
+        if (el.cartDialog && el.cartDialog.open) {
+          el.cartDialog.close();
+        }
+        renderCartComponent();
+        return;
+      }
+    });
+  }
+
+  // --- 12. Initialization ---
+  function init() {
+    document.documentElement.lang = state.lang;
+    if (el.langBtn) el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
+
+    updateOpenStatus();
+    renderHoursTable();
+    renderTabs();
+    renderMenu();
+    renderCartComponent();
+    setupScrollSpy();
+    initEvents();
+
+    // Check open status every 60s
+    setInterval(updateOpenStatus, 60000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
