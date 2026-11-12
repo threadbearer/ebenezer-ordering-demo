@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantalla de Cocina y Mostrador — Restaurante Ebenezer</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    .kitchen-nav {
+      background: #1e293b;
+      border-bottom: 2px solid #334155;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kitchen-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .kitchen-badge-live {
+      background: #ef4444;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    .kitchen-board {
+      max-width: 1400px;
+      margin: 24px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .column-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 140px);
+      overflow: hidden;
+    }
+    .column-header {
+      padding: 14px 18px;
+      font-weight: 800;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+    }
+    .col-new .column-header { background: #1e3a8a; color: #93c5fd; border-color: #3b82f6; }
+    .col-prep .column-header { background: #78350f; color: #fde68a; border-color: #d97706; }
+    .col-ready .column-header { background: #064e3b; color: #a7f3d0; border-color: #10b981; }
+
+    .column-orders-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .ticket-card {
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      border-left: 6px solid #3b82f6;
+    }
+    .ticket-card.prep { border-left-color: #f59e0b; }
+    .ticket-card.ready { border-left-color: #10b981; }
+
+    .ticket-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px dashed #cbd5e1;
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+    .ticket-id { font-size: 1.15rem; font-weight: 900; color: #0c3888; }
+    .ticket-time { font-size: 0.8rem; font-weight: 700; color: #64748b; }
+    .ticket-cust { font-size: 0.95rem; font-weight: 800; color: #1e293b; margin-bottom: 8px; }
+    .ticket-items-list { font-size: 0.9rem; line-height: 1.4; margin-bottom: 12px; }
+    .ticket-item-row { margin-bottom: 6px; }
+    .ticket-item-notes { font-size: 0.8rem; color: #0c3888; background: #e0e7ff; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 2px; }
+    .ticket-actions {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+    }
+    .btn-ticket {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn-ticket.next { background: #0c3888; color: white; }
+    .btn-ticket.print { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+
+    /* Thermal receipt printer preview */
+    @media print {
+      body * { visibility: hidden; }
+      #printableTicket, #printableTicket * { visibility: visible; }
+      #printableTicket {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        color: black !important;
+        background: white !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="kitchen-nav">
+    <div class="kitchen-title">
+      <span>👨‍🍳 Pantalla de Cocina / Mostrador</span>
+      <span class="kitchen-badge-live">● EN VIVO</span>
+      <span style="font-size:0.85rem; color:#94a3b8; font-weight:normal;">Restaurante Salvadoreño Ebenezer</span>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <button class="btn-lang" onclick="playChime()" style="background:#334155; color:white; border-color:#475569;">🔔 Probar Timbre</button>
+      <button class="btn-lang" onclick="addSampleOrder()" style="background:#0c3888; color:white; border-color:#3b82f6;">+ Simular Pedido Entrante</button>
+      <a href="index.html" class="btn-lang" style="background:#334155; color:white; border-color:#475569;">← Ver Menú de Clientes</a>
+    </div>
+  </header>
+
+  <main class="kitchen-board">
+    <!-- Column 1: Nuevas -->
+    <div class="column-card col-new">
+      <div class="column-header">
+        <span>🔔 NUEVOS PEDIDOS (<span id="countNew">0</span>)</span>
+        <span style="font-size:0.8rem;">Entrantes</span>
+      </div>
+      <div class="column-orders-list" id="colNewList"></div>
+    </div>
+
+    <!-- Column 2: Preparando -->
+    <div class="column-card col-prep">
+      <div class="column-header">
+        <span>🔥 EN PREPARACIÓN (<span id="countPrep">0</span>)</span>
+        <span style="font-size:0.8rem;">En Comal / Cocina</span>
+      </div>
+      <div class="column-orders-list" id="colPrepList"></div>
+    </div>
+
+    <!-- Column 3: Listas -->
+    <div class="column-card col-ready">
+      <div class="column-header">
+        <span>✅ LISTAS PARA RECOGER (<span id="countReady">0</span>)</span>
+        <span style="font-size:0.8rem;">En Mostrador</span>
+      </div>
+      <div class="column-orders-list" id="colReadyList"></div>
+    </div>
+  </main>
+
+  <!-- Hidden container for printing thermal ticket -->
+  <div id="printableTicket" style="display:none;"></div>
+
+  <script>
+    // Audio Chime Generator via Web Audio API
+    function playChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now); // D5
+        osc1.frequency.setValueAtTime(880, now + 0.15); // A5
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+        osc1.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc1.stop(now + 0.8);
+      } catch(e) {
+        console.log('Audio not allowed yet without interaction');
+      }
+    }
+
+    // Default seed sample orders if empty
+    function initializeOrders() {
+      let orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      if (orders.length === 0) {
+        orders = [
+          {
+            orderNumber: "EBZ-1048",
+            createdAt: new Date(Date.now() - 6 * 60000).toISOString(),
+            customer: { name: "Carlos M.", phone: "(818) 555-0142" },
+            pickupTime: "Lo antes posible (20 mins)",
+            paymentMethod: "store",
+            total: 38.45,
+            status: "new",
+            items: [
+              { qty: 4, name_es: "Pupusa Revuelta", price: 3.75, customizations: { dough: "Masa de Maíz", extras: "Curtido Extra, Salsa Picante, Bien Doradita" } },
+              { qty: 2, name_es: "Agua de Horchata Grande", price: 4.50 },
+              { qty: 1, name_es: "Platano con Crema", price: 8.00 }
+            ]
+          },
+          {
+            orderNumber: "EBZ-1045",
+            createdAt: new Date(Date.now() - 14 * 60000).toISOString(),
+            customer: { name: "Rosa Hernández", phone: "(747) 555-8910" },
+            pickupTime: "En 35 minutos",
+            paymentMethod: "card",
+            total: 29.50,
+            status: "prep",
+            items: [
+              { qty: 3, name_es: "Pupusa de Loroco con Queso", price: 4.00, customizations: { dough: "Harina de Arroz (+$0.50)", extras: "Curtido Extra" } },
+              { qty: 1, name_es: "Caldo de Gallina", price: 16.50 }
+            ]
+          },
+          {
+            orderNumber: "EBZ-1042",
+            createdAt: new Date(Date.now() - 25 * 60000).toISOString(),
+            customer: { name: "Jorge Sandoval", phone: "(818) 555-2233" },
+            pickupTime: "Listo",
+            paymentMethod: "store",
+            total: 19.80,
+            status: "ready",
+            items: [
+              { qty: 1, name_es: "Desayuno Tradicional", price: 16.00 },
+              { qty: 1, name_es: "Café Caliente", price: 2.25 }
+            ]
+          }
+        ];
+        localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(orders));
+      }
+      renderKitchen();
+    }
+
+    function renderKitchen() {
+      const orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+
+      const colNew = document.getElementById('colNewList');
+      const colPrep = document.getElementById('colPrepList');
+      const colReady = document.getElementById('colReadyList');
+
+      colNew.innerHTML = '';
+      colPrep.innerHTML = '';
+      colReady.innerHTML = '';
+
+      let cNew = 0, cPrep = 0, cReady = 0;
+
+      orders.forEach((ord, idx) => {
+        const card = document.createElement('div');
+        card.className = `ticket-card ${ord.status}`;
+
+        let itemsHtml = '';
+        ord.items.forEach(it => {
+          let customText = '';
+          if (it.customizations) {
+            let notes = [];
+            if (it.customizations.dough) notes.push(it.customizations.dough);
+            if (it.customizations.extras) notes.push(it.customizations.extras);
+            if (it.customizations.notes) notes.push(it.customizations.notes);
+            customText = `<div class="ticket-item-notes">👉 ${notes.join(' • ')}</div>`;
+          }
+          itemsHtml += `
+            <div class="ticket-item-row">
+              <strong>${it.qty}x</strong> ${it.name_es}
+              ${customText}
+            </div>
+          `;
+        });
+
+        let actionBtns = '';
+        if (ord.status === 'new') {
+          cNew++;
+          actionBtns = `
+            <button class="btn-ticket print" onclick="printReceipt(${idx})">🖨️ Ticket</button>
+            <button class="btn-ticket next" onclick="moveStatus(${idx}, 'prep')">🔥 A Cocina</button>
+          `;
+          card.innerHTML = `
+            <div class="ticket-top">
+              <span class="ticket-id">${ord.orderNumber}</span>
+              <span class="ticket-time">⏰ ${ord.pickupTime}</span>
+            </div>
+            <div class="ticket-cust">👤 ${ord.customer.name} • 📞 ${ord.customer.phone}</div>
+            <div class="ticket-items-list">${itemsHtml}</div>
+            <div style="font-size:0.85rem; font-weight:800; color:#059669; margin-bottom:8px;">Total: $${ord.total.toFixed(2)} (${ord.paymentMethod === 'store' ? '💵 Efectivo en Tienda' : '💳 Pagado Online'})</div>
+            <div class="ticket-actions">${actionBtns}</div>
+          `;
+          colNew.appendChild(card);
+        } else if (ord.status === 'prep') {
+          cPrep++;
+          actionBtns = `
+            <button class="btn-ticket print" onclick="printReceipt(${idx})">🖨️ Ticket</button>
+            <button class="btn-ticket next" style="background:#059669;" onclick="moveStatus(${idx}, 'ready')">✅ Listo Mostrador</button>
+          `;
+          card.innerHTML = `
+            <div class="ticket-top">
+              <span class="ticket-id">${ord.orderNumber}</span>
+              <span class="ticket-time">⏰ ${ord.pickupTime}</span>
+            </div>
+            <div class="ticket-cust">👤 ${ord.customer.name} • 📞 ${ord.customer.phone}</div>
+            <div class="ticket-items-list">${itemsHtml}</div>
+            <div class="ticket-actions">${actionBtns}</div>
+          `;
+          colPrep.appendChild(card);
+        } else if (ord.status === 'ready') {
+          cReady++;
+          actionBtns = `
+            <button class="btn-ticket print" onclick="printReceipt(${idx})">🖨️ Ticket</button>
+            <button class="btn-ticket" style="background:#64748b; color:white;" onclick="archiveOrder(${idx})">📦 Entregado</button>
+          `;
+          card.innerHTML = `
+            <div class="ticket-top">
+              <span class="ticket-id">${ord.orderNumber}</span>
+              <span class="ticket-time" style="color:#059669;">LISTO PARA ENTREGAR</span>
+            </div>
+            <div class="ticket-cust">👤 ${ord.customer.name} • 📞 ${ord.customer.phone}</div>
+            <div class="ticket-items-list">${itemsHtml}</div>
+            <div class="ticket-actions">${actionBtns}</div>
+          `;
+          colReady.appendChild(card);
+        }
+      });
+
+      document.getElementById('countNew').textContent = cNew;
+      document.getElementById('countPrep').textContent = cPrep;
+      document.getElementById('countReady').textContent = cReady;
+    }
+
+    function moveStatus(idx, newStatus) {
+      const orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      if (orders[idx]) {
+        orders[idx].status = newStatus;
+        localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(orders));
+        renderKitchen();
+      }
+    }
+
+    function archiveOrder(idx) {
+      const orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      if (orders[idx]) {
+        orders.splice(idx, 1);
+        localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(orders));
+        renderKitchen();
+      }
+    }
+
+    function addSampleOrder() {
+      const orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      const randomId = Math.floor(1000 + Math.random() * 9000);
+      orders.unshift({
+        orderNumber: `EBZ-${randomId}`,
+        createdAt: new Date().toISOString(),
+        customer: { name: "Cliente Mostrador", phone: "(818) 555-" + Math.floor(1000+Math.random()*9000) },
+        pickupTime: "Lo antes posible (20-25 mins)",
+        paymentMethod: "store",
+        total: 26.50,
+        status: "new",
+        items: [
+          { qty: 4, name_es: "Pupusa de Frijol y Queso", price: 3.75, customizations: { dough: "Masa de Maíz", extras: "Curtido Extra, Salsa Roja" } },
+          { qty: 2, name_es: "Agua de Ensalada", price: 4.50 }
+        ]
+      });
+      localStorage.setItem('ebenezer_kitchen_orders', JSON.stringify(orders));
+      playChime();
+      renderKitchen();
+    }
+
+    function printReceipt(idx) {
+      const orders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
+      const ord = orders[idx];
+      if (!ord) return;
+
+      const printable = document.getElementById('printableTicket');
+      let itemsList = '';
+      ord.items.forEach(it => {
+        let notes = '';
+        if (it.customizations) {
+          notes = `<div style="font-size:10pt;">* ${it.customizations.dough || ''} - ${it.customizations.extras || ''}</div>`;
+        }
+        itemsList += `
+          <div style="margin-bottom:6px; font-size:12pt;">
+            <strong>${it.qty}x ${it.name_es}</strong>
+            ${notes}
+          </div>
+        `;
+      });
+
+      printable.innerHTML = `
+        <div style="font-family:monospace; padding:10px; width:75mm; border:1px solid #ccc;">
+          <h2 style="text-align:center; margin:0 0 4px 0; font-size:14pt;">EBENEZER RESTAURANTE</h2>
+          <div style="text-align:center; font-size:9pt; margin-bottom:8px;">8672 Lindley Ave, Northridge, CA</div>
+          <div style="border-top:1px dashed black; border-bottom:1px dashed black; padding:6px 0; margin-bottom:8px;">
+            <div style="font-size:16pt; font-weight:bold;">ORDEN: ${ord.orderNumber}</div>
+            <div style="font-size:10pt;">Hora Recogida: ${ord.pickupTime}</div>
+            <div style="font-size:10pt;">Cliente: ${ord.customer.name}</div>
+            <div style="font-size:10pt;">Tel: ${ord.customer.phone}</div>
+          </div>
+          <div>${itemsList}</div>
+          <div style="border-top:1px dashed black; padding-top:6px; margin-top:10px; font-size:12pt; font-weight:bold;">
+            TOTAL: $${ord.total.toFixed(2)} (${ord.paymentMethod === 'store' ? 'PAGO EN TIENDA' : 'PAGADO'})
+          </div>
+        </div>
+      `;
+      printable.style.display = 'block';
+      window.print();
+      printable.style.display = 'none';
+    }
+
+    // Auto-poll localStorage every 2 seconds for new orders
+    setInterval(renderKitchen, 2000);
+    initializeOrders();
+  </script>
+</body>
+</html>
+

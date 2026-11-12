@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Restaurante Salvadoreño Ebenezer — Pedidos Directos Sin Comisión | Northridge, CA</title>
+  <meta name="description" content="Ordene pupusas hechas a mano y auténtica comida salvadoreña directamente desde Restaurante Salvadoreño Ebenezer en Northridge, CA. Precios justos de tienda ($3.75) sin intermediarios.">
+  
+  <!-- OpenGraph -->
+  <meta property="og:title" content="Restaurante Salvadoreño Ebenezer — Pedidos Directos">
+  <meta property="og:description" content="Auténticas pupusas salvadoreñas hechas a mano en Northridge, CA. Ordene directo y ahorre.">
+  <meta property="og:image" content="assets/banner.jpg">
+  <meta property="og:type" content="restaurant">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Local Restaurant Schema JSON-LD for Google SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    "name": "Restaurante Salvadoreño Ebenezer",
+    "image": "assets/banner.jpg",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "8672 Lindley Ave",
+      "addressLocality": "Northridge",
+      "addressRegion": "CA",
+      "postalCode": "91325",
+      "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 34.2283637,
+      "longitude": -118.5268899
+    },
+    "telephone": "+17472453571",
+    "servesCuisine": "Salvadoran",
+    "priceRange": "$$",
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+        "opens": "06:00",
+        "closes": "20:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Sunday",
+        "opens": "07:00",
+        "closes": "20:00"
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="top-bar">
+    <span class="top-bar-badge" data-i18n="topBannerBadge">Sitio Oficial</span>
+    <span data-i18n="topBannerText">¡Ordene Directo y Ahorre! Precios originales de tienda sin tarifas de intermediarios ($0 Comisiones a Terceros).</span>
+  </div>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <img src="assets/logo.png" alt="Ebenezer Logo" class="brand-logo" onerror="this.src='assets/banner.jpg'">
+        <div>
+          <div class="brand-name">Restaurante Salvadoreño Ebenezer</div>
+          <div class="brand-sub">8672 Lindley Ave, Northridge, CA</div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <a href="kitchen.html" style="font-size:0.75rem; color:#64748b; text-decoration:none; font-weight:700; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; background:#f1f5f9;">👨‍🍳 Cocina / Staff</a>
+        <button id="langToggleBtn" class="btn-lang" onclick="toggleLanguage()">🌐 English</button>
+        <a href="tel:17472453571" class="btn-phone">📞 (747) 245-3571</a>
+        <button class="btn-cart" onclick="showCartDrawer()">
+          🛒 <span data-i18n="cartBtnText">Mi Pedido</span>
+          <span class="cart-badge" id="cartBadgeCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag" data-i18n="heroTag">Auténtico Sabor Salvadoreño • Northridge, CA</div>
+      <h1 data-i18n="heroTitle">Pupusas Artesanales y Tradición Salvadoreña</h1>
+      <p data-i18n="heroDesc">Hechas a mano al momento con masa fresca de maíz o arroz. Precios justos de tienda sin sobreprecios ni comisiones abusivas.</p>
+      
+      <div class="hero-meta-grid">
+        <div class="hero-meta-item">📍 <span data-i18n="heroMetaLocation">8672 Lindley Ave, Northridge, CA</span></div>
+        <div class="hero-meta-item">⏰ <span data-i18n="heroMetaHours">Abierto Hoy: 6:00 AM – 8:00 PM</span></div>
+        <div class="hero-meta-item">⭐ <span data-i18n="heroMetaRating">4.3★ en Google (350+ Reseñas)</span></div>
+      </div>
+
+      <div class="hero-cta-group">
+        <a href="#menuCatalogContainer" class="btn-hero-primary" data-i18n="heroBtnOrder">Pedir para Recoger</a>
+        <a href="tel:17472453571" class="btn-hero-secondary" data-i18n="heroBtnCall">Llamar al Restaurante</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Value Pillars Strip -->
+  <section class="value-strip">
+    <div class="value-strip-container">
+      <div class="value-item">
+        <div class="value-icon">🌽</div>
+        <div class="value-text">
+          <strong data-i18n="value1Title">Precios Reales de Tienda</strong>
+          <span data-i18n="value1Desc">Pupusas a $3.75 (Ahorre $2.40 por pupusa)</span>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">💰</div>
+        <div class="value-text">
+          <strong data-i18n="value2Title">0% Comisiones a Terceros</strong>
+          <span data-i18n="value2Desc">100% de apoyo directo a negocio familiar</span>
+        </div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">⏱️</div>
+        <div class="value-text">
+          <strong data-i18n="value3Title">Recogida Rápida (Pickup)</strong>
+          <span data-i18n="value3Desc">Listo en 20-25 mins • Calientito en mostrador</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sticky Category Navigation & Search Bar -->
+  <div class="sticky-bar">
+    <div class="sticky-bar-container">
+      <nav class="categories-nav" id="categoriesNav">
+        <!-- Injected via JavaScript -->
+      </nav>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar pupusas, caldos, tamales..." data-i18n-placeholder="searchPlaceholder">
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Catalog Container -->
+  <main class="catalog-container" id="menuCatalogContainer">
+    <!-- Categories & Food items rendered here via app.js -->
+  </main>
+
+  <!-- Cart Drawer Overlay -->
+  <div class="cart-overlay" id="cartDrawerOverlay" onclick="closeCartDrawer()">
+    <div class="cart-drawer" onclick="event.stopPropagation()">
+      <div class="cart-header">
+        <h3>🛒 <span data-i18n="cartTitle">Su Pedido para Recoger</span></h3>
+        <button class="btn-close-cart" onclick="closeCartDrawer()">&times;</button>
+      </div>
+
+      <div class="cart-items-list" id="cartItemsList">
+        <!-- Rendered items -->
+      </div>
+
+      <div class="cart-footer" id="cartFooter">
+        <div class="cart-savings-banner" id="cartSavingsBanner">
+          <!-- Dynamic savings -->
+        </div>
+
+        <div class="cart-summary-line">
+          <span data-i18n="summarySubtotal">Subtotal</span>
+          <span id="summarySubtotal">$0.00</span>
+        </div>
+        <div class="cart-summary-line">
+          <span data-i18n="summaryTax">Impuestos Locales (9.5%)</span>
+          <span id="summaryTax">$0.00</span>
+        </div>
+        <div class="cart-summary-line">
+          <span data-i18n="summaryFees">Tarifa de Servicio a Terceros</span>
+          <span style="color:#059669; font-weight:700;" data-i18n="summaryFeesValue">$0.00 (Gratis)</span>
+        </div>
+        <div class="cart-summary-line total">
+          <span data-i18n="summaryTotal">Total a Pagar</span>
+          <span id="summaryTotal" style="color:#0c3888;">$0.00</span>
+        </div>
+
+        <button class="btn-checkout" onclick="openCheckoutModal()" data-i18n="btnProceedCheckout">Continuar con el Pedido</button>
+        <button class="btn-whatsapp-cart" onclick="sendOrderByWhatsApp()">
+          <span>💬</span> <span data-i18n="btnWhatsAppOrder">Enviar Pedido por WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pupusa Customizer Modal -->
+  <div class="modal-overlay" id="pupusaModal" onclick="closePupusaModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="pupusaModalItemName">Personalizar Pupusa</h3>
+        <button class="btn-close-cart" onclick="closePupusaModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <span style="font-size:0.9rem; color:#64748b;">Precio Base:</span>
+          <span id="pupusaModalPrice" style="font-size:1.25rem; font-weight:800; color:#059669;">$3.75</span>
+        </div>
+
+        <!-- Dough Choice -->
+        <div class="option-group">
+          <div class="option-title">
+            <span data-i18n="doughTitle">Seleccione su Masa:</span>
+            <span>Obligatorio</span>
+          </div>
+          <div class="choice-pill-group">
+            <label class="choice-pill selected" onclick="updatePillStyles()">
+              <input type="radio" name="pupusaDough" id="doughCorn" value="corn" checked>
+              <span>🌽 <strong data-i18n="doughCorn">Maíz Tradicional</strong></span>
+              <span style="color:#64748b;">+$0.00</span>
+            </label>
+            <label class="choice-pill" onclick="updatePillStyles()">
+              <input type="radio" name="pupusaDough" id="doughRice" value="rice">
+              <span>🌾 <strong data-i18n="doughRice">Harina de Arroz</strong></span>
+              <span style="color:#059669; font-weight:700;">+$0.50</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Cooking Style -->
+        <div class="option-group">
+          <div class="option-title">
+            <span data-i18n="cookingStyleTitle">Punto de Cocción:</span>
+          </div>
+          <div class="choice-pill-group">
+            <label class="choice-pill selected" onclick="updatePillStyles()">
+              <input type="radio" name="pupusaStyle" id="pupusaStyleNormal" value="normal" checked>
+              <span data-i18n="cookingNormal">Normal / Suave</span>
+            </label>
+            <label class="choice-pill" onclick="updatePillStyles()">
+              <input type="radio" name="pupusaStyle" id="pupusaStyleCrispy" value="crispy">
+              <span data-i18n="cookingWellDone">Bien Doradita / Tostada</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Extras & Sides -->
+        <div class="option-group">
+          <div class="option-title">
+            <span data-i18n="extrasTitle">Acompañamientos y Extras:</span>
+            <span>Gratis</span>
+          </div>
+          <label class="checkbox-label">
+            <input type="checkbox" id="extraCurtido">
+            <span data-i18n="extraCurtido">Curtido Artesanal Extra (Repollo fermentado)</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="extraSalsaRoja">
+            <span data-i18n="extraSalsaRoja">Salsa de Tomate Casera Extra</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="extraSalsaPicante">
+            <span data-i18n="extraSalsaPicante">Salsa Picante Roja</span>
+          </label>
+        </div>
+
+        <!-- Special Instructions -->
+        <div class="option-group">
+          <div class="option-title">
+            <span>Instrucciones Especiales:</span>
+          </div>
+          <textarea id="pupusaNotes" class="instructions-input" rows="2" placeholder="Ej. Poco queso, sin cebolla, bien calientes..." data-i18n-placeholder="notesPlaceholder"></textarea>
+        </div>
+
+        <!-- Quantity in modal -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0;">
+          <span style="font-weight:700; font-size:0.9rem;">Cantidad:</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="qty-btn" type="button" onclick="document.getElementById('pupusaQtyModal').value = Math.max(1, parseInt(document.getElementById('pupusaQtyModal').value)-1)">-</button>
+            <input type="number" id="pupusaQtyModal" value="1" min="1" max="50" style="width:48px; text-align:center; padding:4px; font-weight:800; border:1px solid #cbd5e1; border-radius:6px;">
+            <button class="qty-btn" type="button" onclick="document.getElementById('pupusaQtyModal').value = parseInt(document.getElementById('pupusaQtyModal').value)+1">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-lang" onclick="closePupusaModal()" data-i18n="btnClose">Cerrar</button>
+        <button type="button" class="btn-checkout" style="margin-top:0; width:auto; padding:10px 24px;" onclick="addCustomizedPupusaToCart()" data-i18n="btnAddModal">Agregar al Carrito</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Details Modal -->
+  <div class="modal-overlay" id="checkoutModal" onclick="closeCheckoutModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 data-i18n="checkoutModalTitle">Detalles para Recoger (Pickup)</h3>
+        <button class="btn-close-cart" onclick="closeCheckoutModal()">&times;</button>
+      </div>
+      <form onsubmit="confirmOrder(event)">
+        <div class="modal-body">
+          <div class="option-group">
+            <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:4px;" data-i18n="nameLabel">Nombre y Apellido:</label>
+            <input type="text" id="custName" required class="search-input" style="padding-left:12px;" placeholder="Ej. Carlos Martínez" data-i18n-placeholder="namePlaceholder">
+          </div>
+
+          <div class="option-group">
+            <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:4px;" data-i18n="phoneLabel">Teléfono Móvil (para aviso por SMS/WhatsApp):</label>
+            <input type="tel" id="custPhone" required class="search-input" style="padding-left:12px;" placeholder="Ej. (818) 555-0192" data-i18n-placeholder="phonePlaceholder">
+          </div>
+
+          <div class="option-group">
+            <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:4px;" data-i18n="pickupTimeLabel">Hora de Recogida en 8672 Lindley Ave:</label>
+            <select id="pickupTimeSelect" class="search-input" style="padding-left:12px;">
+              <option value="Lo antes posible (20-25 mins)" data-i18n="pickupAsap">Lo antes posible (20-25 minutos)</option>
+              <option value="En 35-40 minutos" data-i18n="pickup30">En 35-40 minutos</option>
+              <option value="En 60 minutos" data-i18n="pickup60">En 60 minutos</option>
+            </select>
+          </div>
+
+          <div class="option-group">
+            <label style="display:block; font-size:0.85rem; font-weight:700; margin-bottom:6px;" data-i18n="paymentMethodLabel">Método de Pago:</label>
+            <label class="choice-pill selected" style="margin-bottom:8px;">
+              <input type="radio" name="paymentMethod" value="store" checked>
+              <div>
+                <strong data-i18n="payAtStore">💵 Pagar al Recoger (Efectivo o Tarjeta en Tienda)</strong>
+                <div style="font-size:0.75rem; color:#64748b;">Pague cómodamente en el mostrador sin comisión de tarjeta.</div>
+              </div>
+            </label>
+            <label class="choice-pill">
+              <input type="radio" name="paymentMethod" value="card">
+              <div>
+                <strong data-i18n="payCardOnline">💳 Tarjeta de Crédito / Débito / Apple Pay (Stripe)</strong>
+                <div style="font-size:0.75rem; color:#64748b;">Pago rápido y seguro en línea.</div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-lang" onclick="closeCheckoutModal()" data-i18n="btnClose">Volver</button>
+          <button type="submit" class="btn-checkout" style="margin-top:0; width:auto; padding:10px 24px;" data-i18n="btnConfirmOrder">Confirmar Pedido</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Order Success Modal -->
+  <div class="modal-overlay" id="orderSuccessModal">
+    <div class="modal-card" style="text-align:center;">
+      <div class="modal-body" style="padding:32px 24px;">
+        <div style="font-size:3.5rem; margin-bottom:12px;">🎉</div>
+        <h2 style="font-size:1.5rem; color:#0c3888; font-weight:800; margin-bottom:8px;" data-i18n="orderSuccessTitle">¡Pedido Recibido con Éxito!</h2>
+        <p style="color:#64748b; font-size:0.95rem; margin-bottom:18px;" data-i18n="orderPrepMessage">Estamos preparando su orden caliente en nuestra cocina en 8672 Lindley Ave, Northridge.</p>
+
+        <div style="background:#f1f5f9; border:1.5px dashed #cbd5e1; border-radius:10px; padding:16px; margin-bottom:20px;">
+          <div style="font-size:0.8rem; color:#64748b; text-transform:uppercase; font-weight:700;" data-i18n="orderNumberLabel">Número de Pedido</div>
+          <div id="confirmOrderNum" style="font-size:2rem; font-weight:900; color:#0c3888; letter-spacing:1px; margin:4px 0;">EBZ-1042</div>
+          <div style="font-size:0.9rem; color:#334155;">Total: <strong id="confirmOrderTotal" style="color:#059669;">$0.00</strong> • Hora: <strong id="confirmOrderTime">20-25 mins</strong></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <a href="https://maps.app.goo.gl/6uodyNZbph4xevkz8" target="_blank" class="btn-hero-primary" style="display:block; text-align:center;" data-i18n="btnDirections">Ver Ruta en Google Maps</a>
+          <a href="tel:17472453571" class="btn-hero-secondary" style="display:block; text-align:center; color:#0c3888; border-color:#cbd5e1;" data-i18n="btnCallStoreConfirm">Llamar al Restaurante: (747) 245-3571</a>
+          <button class="btn-lang" style="justify-content:center; margin-top:8px;" onclick="closeSuccessModal()" data-i18n="btnClose">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Mobile WhatsApp Button -->
+  <div class="fab-container">
+    <a href="https://wa.me/17472453571?text=Hola,%20quisiera%20hacer%20un%20pedido%20en%20Restaurante%20Ebenezer" target="_blank" class="fab-whatsapp" aria-label="WhatsApp Pedidos">
+      💬
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4 style="color:#fbbf24;">Restaurante Salvadoreño Ebenezer</h4>
+        <p>Auténtica cocina tradicional salvadoreña en el Valle de San Fernando. Famosos por nuestras pupusas artesanales hechas a mano, sopas caseras, tamales de elote y antojitos típicos.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Ubicación y Contacto</h4>
+        <p>📍 8672 Lindley Ave, Northridge, CA 91325<br>
+        📞 Teléfono Principal: <a href="tel:17472453571" style="color:#fbbf24;">(747) 245-3571</a><br>
+        📞 Restaurante: (818) 280-3191<br>
+        ✉️ Email: ebenezer102011@gmail.com</p>
+      </div>
+      <div class="footer-col">
+        <h4>Horario de Atención</h4>
+        <p>Lunes a Sábado: 6:00 AM – 8:00 PM<br>
+        Domingo: 7:00 AM – 8:00 PM<br>
+        <em>Servicio para llevar, recoger (pickup) y consumo en salón.</em></p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Restaurante Salvadoreño Ebenezer. Todos los derechos reservados.</div>
+      <div>
+        <a href="kitchen.html" style="margin-right:16px;">Acceso de Cocina / Staff</a>
+        <a href="https://maps.app.goo.gl/6uodyNZbph4xevkz8" target="_blank">Google Maps</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="menu-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
