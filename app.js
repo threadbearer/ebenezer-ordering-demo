@@ -1,22 +1,27 @@
 /**
- * Restaurante Salvadoreño Ebenezer — Application Logic (v2)
- * Clean, fast, accessible state-driven ordering experience.
+ * Restaurante Salvadoreño Ebenezer — Application Logic (v2.1)
+ * Clean, fast, accessible state-driven ordering experience with robust mobile sheet & authentic touches.
  */
 
 (() => {
   'use strict';
 
-  // --- 1. Internationalization Dictionary (Spec §6) ---
+  // --- 1. Internationalization Dictionary ---
   const I18N = {
     es: {
+      salvadoranFood: "Restaurante Salvadoreño",
+      flavorBadge: "Sabor Cuscatleco · Northridge, CA",
+      taglineHero: "Masa de Maíz y Harina de Arroz · Pupusas Hechas al Momento",
       tagline: "Pupusas hechas a mano",
       openUntil: "Abierto · cierra {t}",
       closedUntil: "Cerrado · abre {t}",
       directions: "Cómo llegar",
-      pupusasSub: "Hechas a mano · incluyen curtido y salsa",
+      pupusasSub: "Hechas a mano al comal · incluyen curtido y salsas caseras",
+      pupusaBadge: "Especialidad de la Casa",
       dough: "Masa",
-      corn: "Maíz",
-      rice: "Arroz",
+      doughSub: "Elige tu masa para agregar al pedido",
+      corn: "🌽 Maíz",
+      rice: "🍚 Arroz",
       riceExtra: "+$0.50",
       viewOrder: "Ver pedido",
       yourOrder: "Tu pedido",
@@ -35,11 +40,11 @@
       plus30: "En 30 min",
       plus60: "En 60 min",
       note: "Nota para la cocina (opcional)",
-      notePh: "Ej. bien doraditas, salsa picante aparte",
+      notePh: "Ej. bien doraditas, curtido extra, salsa picante aparte",
       payAtPickup: "Pagas al recoger · efectivo o tarjeta",
       send: "Enviar pedido",
       back: "Volver",
-      sent: "¡Pedido enviado!",
+      sent: "¡Pedido enviado con éxito!",
       orderNo: "Pedido",
       readyAt: "Listo para recoger",
       alsoWhatsApp: "También enviar por WhatsApp",
@@ -50,17 +55,26 @@
       undo: "Deshacer",
       itemRemoved: "Artículo eliminado",
       enterNamePhone: "Por favor ingresa tu nombre y teléfono.",
+      favRevuelta: "Favorita de la Casa",
+      favCaldo: "Especialidad Caliente",
+      favPlatano: "Clásico Típico",
+      favHorchata: "Fresca del Día",
       days: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
     },
     en: {
+      salvadoranFood: "Salvadoran Restaurant",
+      flavorBadge: "Authentic Salvadoran · Northridge, CA",
+      taglineHero: "Corn Masa & Rice Flour · Fresh Made-to-Order Pupusas",
       tagline: "Handmade pupusas",
       openUntil: "Open · closes {t}",
       closedUntil: "Closed · opens {t}",
       directions: "Directions",
-      pupusasSub: "Handmade · served with curtido & salsa",
+      pupusasSub: "Handcrafted on the comal · served with curtido & house salsas",
+      pupusaBadge: "House Specialty",
       dough: "Dough",
-      corn: "Corn",
-      rice: "Rice",
+      doughSub: "Choose dough for items added below",
+      corn: "🌽 Corn",
+      rice: "🍚 Rice",
       riceExtra: "+$0.50",
       viewOrder: "View order",
       yourOrder: "Your order",
@@ -79,11 +93,11 @@
       plus30: "In 30 min",
       plus60: "In 60 min",
       note: "Note for the kitchen (optional)",
-      notePh: "e.g. extra crispy, hot salsa on the side",
+      notePh: "e.g. extra crispy, extra curtido, spicy salsa on the side",
       payAtPickup: "Pay at pickup · cash or card",
       send: "Place order",
       back: "Back",
-      sent: "Order placed!",
+      sent: "Order placed successfully!",
       orderNo: "Order",
       readyAt: "Ready for pickup",
       alsoWhatsApp: "Also send via WhatsApp",
@@ -94,6 +108,10 @@
       undo: "Undo",
       itemRemoved: "Item removed",
       enterNamePhone: "Please enter your name and phone number.",
+      favRevuelta: "House Favorite",
+      favCaldo: "Specialty Soup",
+      favPlatano: "Traditional Classic",
+      favHorchata: "Fresh Daily",
       days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     }
   };
@@ -134,7 +152,6 @@
     return str;
   }
 
-  // Find item by ID in catalog
   function findCatalogItem(id) {
     if (!window.EBENEZER_CATALOG) return null;
     for (const cat of window.EBENEZER_CATALOG) {
@@ -145,7 +162,6 @@
     return null;
   }
 
-  // Calculate pricing for a cart item
   function getItemPrice(item, dough) {
     let base = item.price;
     if (item.is_pupusa && dough === 'rice') {
@@ -183,19 +199,34 @@
     mobileCartBar: document.getElementById('mobileCartBar'),
     mBarCount: document.getElementById('mBarCount'),
     mBarTotal: document.getElementById('mBarTotal'),
-    cartDialog: document.getElementById('cartDialog'),
+    cartModalBackdrop: document.getElementById('cartModalBackdrop'),
     closeSheetBtn: document.getElementById('closeSheetBtn'),
+    sheetHandleWrap: document.getElementById('sheetHandleWrap'),
     hoursTable: document.getElementById('hoursTable'),
     toastUndo: document.getElementById('toastUndo'),
     toastText: document.getElementById('toastText'),
     toastUndoBtn: document.getElementById('toastUndoBtn')
   };
 
-  // --- 4. Live Open / Closed Status ---
+  // --- 4. Modal Open & Close Functions (Bulletproof) ---
+  function openMobileCart() {
+    if (!el.cartModalBackdrop) return;
+    el.cartModalBackdrop.classList.add('is-open');
+    el.cartModalBackdrop.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileCart() {
+    if (!el.cartModalBackdrop) return;
+    el.cartModalBackdrop.classList.remove('is-open');
+    el.cartModalBackdrop.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  // --- 5. Live Open / Closed Status ---
   function updateOpenStatus() {
     if (!window.EBENEZER_INFO || !window.EBENEZER_INFO.hours) return;
     const now = new Date();
-    // Convert to America/Los_Angeles time
     const laString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
     const laDate = new Date(laString);
     const day = laDate.getDay();
@@ -233,7 +264,7 @@
     return `${displayH}${displayM} ${ampm}`;
   }
 
-  // --- 5. Render Hours Table ---
+  // --- 6. Render Hours Table ---
   function renderHoursTable() {
     if (!el.hoursTable || !window.EBENEZER_INFO) return;
     const now = new Date();
@@ -242,7 +273,6 @@
     const days = I18N[state.lang].days;
 
     let html = '';
-    // Display Monday through Sunday (1 to 6, then 0)
     const order = [1, 2, 3, 4, 5, 6, 0];
     order.forEach(d => {
       const isToday = d === today;
@@ -258,7 +288,7 @@
     el.hoursTable.innerHTML = html;
   }
 
-  // --- 6. Render Tabs & ScrollSpy ---
+  // --- 7. Render Tabs & ScrollSpy ---
   function renderTabs() {
     if (!el.categoryTabs || !window.EBENEZER_CATALOG) return;
     const html = window.EBENEZER_CATALOG.map((cat, idx) => {
@@ -279,7 +309,6 @@
           tabLinks.forEach(link => {
             if (link.getAttribute('data-cat') === id) {
               link.classList.add('active');
-              // Smooth scroll tab into view horizontally
               link.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
             } else {
               link.classList.remove('active');
@@ -292,7 +321,15 @@
     sections.forEach(sec => observer.observe(sec));
   }
 
-  // --- 7. Render Menu ---
+  // --- 8. Render Menu ---
+  function getSpecialTag(item) {
+    if (item.name_es.includes('Revuelta')) return t('favRevuelta');
+    if (item.name_es.includes('Caldo de Gallina')) return t('favCaldo');
+    if (item.name_es.includes('Platano con Crema')) return t('favPlatano');
+    if (item.name_es.includes('Horchata')) return t('favHorchata');
+    return null;
+  }
+
   function renderMenu() {
     if (!el.menuColumn || !window.EBENEZER_CATALOG) return;
 
@@ -305,7 +342,10 @@
       html += `
         <section class="menu-section ${isPupusaCat ? 'pupusas-section' : ''}" id="${cat.id}">
           <header class="section-head">
-            <h2 class="section-title">${catName}</h2>
+            <h2 class="section-title">
+              ${catName}
+              ${isPupusaCat ? `<span class="pupusa-badge-spec">${t('pupusaBadge')}</span>` : ''}
+            </h2>
             ${catSub ? `<p class="section-sub">${catSub}</p>` : ''}
           </header>
       `;
@@ -313,10 +353,13 @@
       if (isPupusaCat) {
         html += `
           <div class="dough-selector-wrap">
-            <span class="dough-label">${t('dough')}:</span>
+            <div class="dough-label-group">
+              <span class="dough-label">${t('dough')}</span>
+              <span class="dough-subtext">${t('doughSub')}</span>
+            </div>
             <div class="dough-segmented" role="group" aria-label="${t('dough')}">
-              <button class="dough-option ${state.dough === 'corn' ? 'active' : ''}" data-dough="corn">${t('corn')}</button>
-              <button class="dough-option ${state.dough === 'rice' ? 'active' : ''}" data-dough="rice">${t('rice')} ${t('riceExtra')}</button>
+              <button type="button" class="dough-option ${state.dough === 'corn' ? 'active' : ''}" data-dough="corn">${t('corn')}</button>
+              <button type="button" class="dough-option ${state.dough === 'rice' ? 'active' : ''}" data-dough="rice">${t('rice')} ${t('riceExtra')}</button>
             </div>
           </div>
         `;
@@ -333,11 +376,15 @@
         const cartEntry = state.cart.find(c => c.key === itemKey);
         const qty = cartEntry ? cartEntry.qty : 0;
         const displayPrice = getItemPrice(item, currentDough);
+        const specialTag = getSpecialTag(item);
 
         html += `
           <article class="item-row" data-id="${item.id}" data-is-pupusa="${item.is_pupusa}">
             <div class="item-info">
-              <h3 class="item-name">${primaryName}</h3>
+              <div class="item-name-row">
+                <h3 class="item-name">${primaryName}</h3>
+                ${specialTag ? `<span class="item-tag-favorite">★ ${specialTag}</span>` : ''}
+              </div>
               ${altName ? `<p class="item-alt-name" lang="es">${altName}</p>` : ''}
               ${desc ? `<p class="item-desc">${desc}</p>` : ''}
             </div>
@@ -361,19 +408,19 @@
     if (qty > 0) {
       return `
         <div class="stepper" role="group" aria-label="${item.name_es}">
-          <button class="stepper-btn step-minus" data-key="${key}" data-id="${item.id}" aria-label="Quitar uno">−</button>
+          <button type="button" class="stepper-btn step-minus" data-key="${key}" data-id="${item.id}" aria-label="Quitar uno">−</button>
           <span class="stepper-qty">${qty}</span>
-          <button class="stepper-btn step-plus" data-key="${key}" data-id="${item.id}" aria-label="Agregar uno">+</button>
+          <button type="button" class="stepper-btn step-plus" data-key="${key}" data-id="${item.id}" aria-label="Agregar uno">+</button>
         </div>
       `;
     } else {
       return `
-        <button class="add-btn" data-key="${key}" data-id="${item.id}" aria-label="Agregar ${item.name_es}">+</button>
+        <button type="button" class="add-btn" data-key="${key}" data-id="${item.id}" aria-label="Agregar ${item.name_es}">+</button>
       `;
     }
   }
 
-  // --- 8. Render Cart & Checkout (Shared Component) ---
+  // --- 9. Render Cart & Checkout ---
   function renderCartComponent() {
     const { subtotal, tax, total, count } = getCartTotals();
 
@@ -384,8 +431,8 @@
       el.mBarTotal.textContent = `$${total.toFixed(2)}`;
     } else {
       el.mobileCartBar.classList.remove('visible');
-      if (el.cartDialog && el.cartDialog.open && state.step === 1) {
-        el.cartDialog.close();
+      if (state.step === 1) {
+        closeMobileCart();
       }
     }
 
@@ -420,9 +467,9 @@
               <div class="line-name">${itemName}</div>
               ${doughLabel ? `<div class="line-dough">${t('dough')}: ${doughLabel}</div>` : ''}
               <div class="stepper" style="margin-top: 6px;">
-                <button class="stepper-btn step-minus" data-key="${entry.key}" data-id="${entry.id}">−</button>
+                <button type="button" class="stepper-btn step-minus" data-key="${entry.key}" data-id="${entry.id}">−</button>
                 <span class="stepper-qty">${entry.qty}</span>
-                <button class="stepper-btn step-plus" data-key="${entry.key}" data-id="${entry.id}">+</button>
+                <button type="button" class="stepper-btn step-plus" data-key="${entry.key}" data-id="${entry.id}">+</button>
               </div>
             </div>
             <div class="line-side">
@@ -448,7 +495,7 @@
             <span>${t('total')}</span>
             <span>$${total.toFixed(2)}</span>
           </div>
-          <button class="primary-btn" id="btnContinueCheckout">
+          <button type="button" class="primary-btn" id="btnContinueCheckout">
             ${t('continue')} · $${total.toFixed(2)}
           </button>
         </div>
@@ -469,9 +516,9 @@
           <div class="form-group">
             <label class="form-label">${t('pickupTime')}</label>
             <div class="time-pills">
-              <button class="time-pill ${state.pickupTimeChoice === 'asap' ? 'active' : ''}" data-time="asap">${t('asap')}</button>
-              <button class="time-pill ${state.pickupTimeChoice === 'plus30' ? 'active' : ''}" data-time="plus30">${t('plus30')}</button>
-              <button class="time-pill ${state.pickupTimeChoice === 'plus60' ? 'active' : ''}" data-time="plus60">${t('plus60')}</button>
+              <button type="button" class="time-pill ${state.pickupTimeChoice === 'asap' ? 'active' : ''}" data-time="asap">${t('asap')}</button>
+              <button type="button" class="time-pill ${state.pickupTimeChoice === 'plus30' ? 'active' : ''}" data-time="plus30">${t('plus30')}</button>
+              <button type="button" class="time-pill ${state.pickupTimeChoice === 'plus60' ? 'active' : ''}" data-time="plus60">${t('plus60')}</button>
             </div>
           </div>
           <div class="form-group">
@@ -483,7 +530,7 @@
             <span>${t('payAtPickup')}</span>
           </div>
           <p class="field-error" id="formError">${t('enterNamePhone')}</p>
-          <button class="primary-btn" id="btnPlaceOrder">
+          <button type="button" class="primary-btn" id="btnPlaceOrder">
             ${t('send')} · $${total.toFixed(2)}
           </button>
           <a href="#" class="secondary-link" id="btnBackToCart">← ${t('back')}</a>
@@ -528,7 +575,7 @@
               <svg class="icon"><use href="#icon-phone"></use></svg>
               <span>${t('call')} (747) 245-3571</span>
             </a>
-            <button class="secondary-link" id="btnDoneOrder">${t('done')}</button>
+            <button type="button" class="secondary-link" id="btnDoneOrder">${t('done')}</button>
           </div>
         </div>
       `;
@@ -537,7 +584,7 @@
     return '';
   }
 
-  // --- 9. Cart Mutations & Event Handlers ---
+  // --- 10. Cart Mutations ---
   function addItem(id, customDough = null) {
     const item = findCatalogItem(id);
     if (!item) return;
@@ -568,7 +615,6 @@
       renderCartComponent();
       updateMenuRowButton(key);
     } else {
-      // Remove line completely & show Undo toast
       state.lastRemovedItem = { ...entry, index: idx };
       state.cart.splice(idx, 1);
       saveCart();
@@ -611,7 +657,7 @@
     updateMenuRowButton(item.key);
   }
 
-  // --- 10. Submit Order ---
+  // --- 11. Submit Order ---
   function submitOrder() {
     const nameInput = document.getElementById('inputName');
     const phoneInput = document.getElementById('inputPhone');
@@ -635,12 +681,10 @@
     const { subtotal, tax, total } = getCartTotals();
     const orderId = `EB-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Calculate pickup ready time
     const readyMinOffset = state.pickupTimeChoice === 'plus60' ? 60 : (state.pickupTimeChoice === 'plus30' ? 30 : 20);
     const readyDate = new Date(Date.now() + readyMinOffset * 60000);
     const readyTimeStr = readyDate.toLocaleTimeString("en-US", { hour: 'numeric', minute: '2-digit', hour12: true });
 
-    // Item summary for kitchen and WhatsApp
     const itemsList = state.cart.map(c => {
       const it = findCatalogItem(c.id);
       const nameStr = it ? it.name_es : 'Artículo';
@@ -683,7 +727,6 @@
       status: 'new'
     };
 
-    // Save to localStorage for kitchen.html integration
     try {
       const existingOrders = JSON.parse(localStorage.getItem('ebenezer_kitchen_orders') || '[]');
       existingOrders.unshift(orderPayload);
@@ -696,10 +739,10 @@
     state.step = 3;
 
     renderCartComponent();
-    renderMenu(); // refresh steppers
+    renderMenu();
   }
 
-  // --- 11. Event Delegation Setup ---
+  // --- 12. Event Listeners ---
   function initEvents() {
     // Language toggle
     if (el.langBtn) {
@@ -709,7 +752,6 @@
         document.documentElement.lang = state.lang;
         el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
 
-        // Update all data-i18n elements
         document.querySelectorAll('[data-i18n]').forEach(node => {
           const key = node.getAttribute('data-i18n');
           node.textContent = t(key);
@@ -723,40 +765,46 @@
       });
     }
 
-    // Mobile cart bar click -> open bottom sheet
+    // Open mobile cart on bottom bar click
     if (el.mobileCartBar) {
-      el.mobileCartBar.addEventListener('click', () => {
-        if (el.cartDialog) {
-          el.cartDialog.showModal();
-        }
-      });
+      el.mobileCartBar.addEventListener('click', openMobileCart);
     }
 
-    // Close sheet button
+    // Close button
     if (el.closeSheetBtn) {
-      el.closeSheetBtn.addEventListener('click', () => {
-        if (el.cartDialog) el.cartDialog.close();
+      el.closeSheetBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeMobileCart();
       });
     }
 
-    // Close sheet when tapping backdrop
-    if (el.cartDialog) {
-      el.cartDialog.addEventListener('click', (e) => {
-        const rect = el.cartDialog.getBoundingClientRect();
-        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height
-          && rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
-        if (e.target === el.cartDialog) {
-          el.cartDialog.close();
+    // Handle drag / tap to close
+    if (el.sheetHandleWrap) {
+      el.sheetHandleWrap.addEventListener('click', closeMobileCart);
+    }
+
+    // Close when clicking directly on backdrop overlay
+    if (el.cartModalBackdrop) {
+      el.cartModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === el.cartModalBackdrop) {
+          closeMobileCart();
         }
       });
     }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && el.cartModalBackdrop && el.cartModalBackdrop.classList.contains('is-open')) {
+        closeMobileCart();
+      }
+    });
 
     // Undo toast button
     if (el.toastUndoBtn) {
       el.toastUndoBtn.addEventListener('click', undoRemove);
     }
 
-    // Delegated clicks inside <main>
+    // Global event delegation
     document.addEventListener('click', (e) => {
       // Dough selector click
       const doughBtn = e.target.closest('.dough-option');
@@ -831,16 +879,14 @@
       if (btnDone) {
         state.step = 1;
         state.lastOrder = null;
-        if (el.cartDialog && el.cartDialog.open) {
-          el.cartDialog.close();
-        }
+        closeMobileCart();
         renderCartComponent();
         return;
       }
     });
   }
 
-  // --- 12. Initialization ---
+  // --- 13. Initialization ---
   function init() {
     document.documentElement.lang = state.lang;
     if (el.langBtn) el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
@@ -853,7 +899,6 @@
     setupScrollSpy();
     initEvents();
 
-    // Check open status every 60s
     setInterval(updateOpenStatus, 60000);
   }
 

@@ -44,6 +44,9 @@
 </head>
 <body>
 
+  <!-- Top Salvadoran Artisan Stripe -->
+  <div class="top-artisan-stripe"></div>
+
   <!-- SVG Icon Sprite -->
   <svg style="display:none;" xmlns="http://www.w3.org/2000/svg">
     <symbol id="icon-phone" viewBox="0 0 24 24">
@@ -76,8 +79,13 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="index.html" class="brand-link" aria-label="Ebenezer Restaurante">
-        <img src="assets/logo-96.webp" alt="Ebenezer Logo" class="brand-logo" width="36" height="36" onerror="this.src='assets/logo.png'">
-        <span class="brand-title">Ebenezer</span>
+        <div class="brand-logo-wrap">
+          <img src="assets/logo-96.webp" alt="Ebenezer Logo" class="brand-logo" width="38" height="38" onerror="this.src='assets/logo.png'">
+        </div>
+        <div>
+          <span class="brand-title">Ebenezer</span>
+          <span class="brand-subtitle-mini" data-i18n="salvadoranFood">Restaurante Salvadoreño</span>
+        </div>
       </a>
 
       <div class="header-actions">
@@ -94,9 +102,14 @@
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-banner-wrap">
-        <img src="assets/bk.webp" alt="Ebenezer Comida Salvadoreña" class="hero-banner" width="1200" height="200" onerror="this.src='assets/bk.jpg'">
+        <img src="assets/bk.webp" alt="Ebenezer Comida Salvadoreña" class="hero-banner" width="1200" height="180" onerror="this.src='assets/bk.jpg'">
+        <div class="hero-badge-corner">
+          <span>🇸🇻</span>
+          <span data-i18n="flavorBadge">Sabor Cuscatleco · Northridge, CA</span>
+        </div>
       </div>
       <h1 class="hero-title">Restaurante Salvadoreño Ebenezer</h1>
+      <p class="hero-tagline" data-i18n="taglineHero">Masa de Maíz y Harina de Arroz · Pupusas Hechas al Momento</p>
       <div class="hero-meta">
         <div class="status-badge" id="openStatusWrap">
           <span class="status-dot" id="statusDot"></span>
@@ -181,15 +194,15 @@
     <div class="m-bar-total" id="mBarTotal">$0.00</div>
   </div>
 
-  <!-- Mobile Cart Bottom Sheet Dialog -->
-  <dialog class="cart-dialog" id="cartDialog" aria-labelledby="sheetTitle">
-    <div class="sheet-content">
-      <div class="sheet-handle-wrap">
+  <!-- Bulletproof Mobile Cart Modal Sheet Backdrop -->
+  <div class="cart-modal-backdrop" id="cartModalBackdrop" aria-hidden="true">
+    <div class="sheet-content" id="sheetContent">
+      <div class="sheet-handle-wrap" id="sheetHandleWrap">
         <div class="sheet-handle"></div>
       </div>
       <div class="cart-header">
         <h2 class="cart-title" id="sheetTitle" data-i18n="yourOrder">Tu pedido</h2>
-        <button class="cart-close-btn" id="closeSheetBtn" aria-label="Cerrar pedido">
+        <button type="button" class="cart-close-btn" id="closeSheetBtn" aria-label="Cerrar pedido">
           <svg class="icon"><use href="#icon-x"></use></svg>
         </button>
       </div>
@@ -197,12 +210,12 @@
         <!-- Rendered by app.js -->
       </div>
     </div>
-  </dialog>
+  </div>
 
   <!-- Undo Toast -->
   <div class="toast-undo" id="toastUndo" role="status" aria-live="polite">
     <span id="toastText">Artículo eliminado</span>
-    <button class="toast-btn" id="toastUndoBtn" data-i18n="undo">Deshacer</button>
+    <button type="button" class="toast-btn" id="toastUndoBtn" data-i18n="undo">Deshacer</button>
   </div>
 
   <!-- Scripts -->
