@@ -117,8 +117,30 @@
   };
 
   // --- 2. Application State ---
+  function getInitialLanguage() {
+    // 1. If user previously chose a language manually on this device, respect their choice
+    const userSelected = localStorage.getItem('ebenezer_lang_selected');
+    if (userSelected === 'es' || userSelected === 'en') {
+      return userSelected;
+    }
+
+    // 2. Default to English ('en') UNLESS the user's system default is Spanish ('es')
+    try {
+      const navLangs = (navigator.languages && navigator.languages.length)
+        ? navigator.languages
+        : [navigator.language || navigator.userLanguage || ''];
+
+      const systemPrimary = (navLangs[0] || '').toLowerCase();
+      if (systemPrimary.startsWith('es')) {
+        return 'es';
+      }
+    } catch (e) {}
+
+    return 'en';
+  }
+
   const state = {
-    lang: localStorage.getItem('ebenezer_lang') || 'es',
+    lang: getInitialLanguage(),
     dough: 'corn', // 'corn' | 'rice'
     cart: loadCart(), // [{ key, id, dough, qty }]
     step: 1, // 1: Cart, 2: Checkout, 3: Confirmation
@@ -748,8 +770,13 @@
     if (el.langBtn) {
       el.langBtn.addEventListener('click', () => {
         state.lang = state.lang === 'es' ? 'en' : 'es';
+        localStorage.setItem('ebenezer_lang_selected', state.lang);
         localStorage.setItem('ebenezer_lang', state.lang);
         document.documentElement.lang = state.lang;
+        document.title = state.lang === 'es'
+          ? 'Restaurante Salvadoreño Ebenezer — Menú y Pedidos en Línea | Northridge, CA'
+          : 'Ebenezer Salvadoran Restaurant — Menu & Online Ordering | Northridge, CA';
+
         el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
 
         document.querySelectorAll('[data-i18n]').forEach(node => {
@@ -889,7 +916,17 @@
   // --- 13. Initialization ---
   function init() {
     document.documentElement.lang = state.lang;
+    document.title = state.lang === 'es'
+      ? 'Restaurante Salvadoreño Ebenezer — Menú y Pedidos en Línea | Northridge, CA'
+      : 'Ebenezer Salvadoran Restaurant — Menu & Online Ordering | Northridge, CA';
+
     if (el.langBtn) el.langBtn.textContent = state.lang === 'es' ? 'EN' : 'ES';
+
+    // Apply translations to all static elements with data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(node => {
+      const key = node.getAttribute('data-i18n');
+      node.textContent = t(key);
+    });
 
     updateOpenStatus();
     renderHoursTable();
